@@ -2,37 +2,36 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>House Concept ERP PRO</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2f8f7a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root{
---main:#5fa38c;--bg:#f3f7f6;--card:#fff;--soft:#eaf5f1;
---text:#1f2933;--weekend:#fde2e2;
+--main:#2f8f7a;
+--soft:#e8f5f2;
+--weekend:#ffecec;
 }
-body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text)}
-header{background:#0f172a;color:white;padding:14px;font-weight:700}
-.container{max-width:1100px;margin:auto;padding:12px}
-.card{background:var(--card);padding:14px;border-radius:18px;margin:12px 0}
-
-.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-weight:700}
-
-.day{background:var(--soft);border-radius:14px;padding:8px;text-align:center;font-weight:700}
-.day.weekend{background:var(--weekend)}
-.day.today{outline:3px solid #22c55e}
-.dot{width:7px;height:7px;background:var(--main);border-radius:50%;margin:4px auto}
-
-button,input,select,textarea{
-width:100%;padding:10px;border-radius:12px;border:1px solid #ccc;margin:4px 0
-}
+body{font-family:Arial;margin:0;background:#f4f6f8}
+header{background:var(--main);color:white;padding:15px;text-align:center;font-weight:700}
+.container{padding:15px}
+.card{background:white;padding:15px;border-radius:12px;margin-bottom:15px;box-shadow:0 2px 6px rgba(0,0,0,0.08)}
+button,input,select,textarea{width:100%;padding:8px;margin:5px 0;border-radius:8px;border:1px solid #ccc}
 button{background:var(--main);color:white;border:none;font-weight:700}
-
-.row{border-bottom:1px solid #eee;padding:6px 0}
-canvas{width:100%;max-height:200px}
-
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{background:var(--soft);padding:8px;border-radius:10px;text-align:center;font-weight:600}
+.weekend{background:var(--weekend)}
+.today{outline:3px solid #22655e}
+.dot{width:6px;height:6px;background:var(--main);border-radius:50%;margin:3px auto}
+canvas{max-height:200px}
 @media(max-width:720px){
-.day{font-size:13px;padding:6px}
+.day{font-size:12px;padding:6px}
 }
 </style>
 </head>
@@ -44,262 +43,221 @@ canvas{width:100%;max-height:200px}
 <div class="container">
 
 <div class="card">
-Zarobione: <b id="earned">0</b> zł |
-Zaliczki: <b id="adv">0</b> zł |
+<h3>Podsumowanie</h3>
+Zarobione: <b id="earned">0</b> zł<br>
+Zaliczki: <b id="adv">0</b> zł<br>
 Do wypłaty: <b id="pay">0</b> zł
 </div>
 
 <div class="card">
-<b id="monthLabel"></b>
-<div class="weekdays">
-<div>Pn</div><div>Wt</div><div>Śr</div><div>Cz</div><div>Pt</div><div>Sb</div><div>Nd</div>
-</div>
-<div id="calendar" class="grid"></div>
-</div>
-
-<div class="card">
-<h3>👷 Pracownicy</h3>
-<input id="wName" placeholder="Imię">
-<input id="wRate" type="number" placeholder="Stawka zł/h">
-<button onclick="addWorker()">Dodaj</button>
-<div id="workers"></div>
+<h3>Pracownicy</h3>
+<input id="workerName" placeholder="Imię">
+<input id="workerRate" placeholder="Stawka godzinowa">
+<button onclick="addWorker()">Dodaj pracownika</button>
+<div id="workersList"></div>
 </div>
 
 <div class="card">
-<h3>⏱ Godziny</h3>
-<select id="entryWorker"></select>
-<input id="entryHours" type="number" placeholder="Godziny">
-<button onclick="addEntry()">Jednemu</button>
-<button onclick="addEntryAll()">Wszystkim</button>
+<h3>Dodaj godziny</h3>
+<select id="hourWorker"></select>
+<input type="date" id="hourDate">
+<input placeholder="Ilość godzin" id="hourCount">
+<button onclick="addHours()">Dodaj godziny</button>
 </div>
 
 <div class="card">
-<h3>💰 Zaliczki</h3>
+<h3>Zaliczka</h3>
 <select id="advWorker"></select>
-<input id="advAmount" type="number" placeholder="Kwota">
-<button onclick="addAdvance()">Dodaj</button>
+<input type="date" id="advDate">
+<input placeholder="Kwota" id="advAmount">
+<button onclick="addAdvance()">Dodaj zaliczkę</button>
 </div>
 
 <div class="card">
-<h3>📆 Tygodniówki</h3>
-<div id="weekly"></div>
+<h3>Kalendarz</h3>
+<div class="calendar" id="calendar"></div>
 </div>
 
 <div class="card">
-<h3>📊 Miesiąc – godziny</h3>
+<h3>Materiały do kupienia</h3>
+<input id="materialInput" placeholder="Materiał">
+<button onclick="addMaterial()">Dodaj</button>
+<ul id="materials"></ul>
+</div>
+
+<div class="card">
+<h3>Notatnik</h3>
+<textarea id="notes" rows="4"></textarea>
+<button onclick="saveNotes()">Zapisz notatki</button>
+</div>
+
+<div class="card">
+<h3>Wykres godzin (miesiąc)</h3>
 <canvas id="hoursChart"></canvas>
 </div>
 
 <div class="card">
-<h3>💰 Miesiąc – zarobki</h3>
+<h3>Wykres zarobków (miesiąc)</h3>
 <canvas id="moneyChart"></canvas>
 </div>
 
 <div class="card">
-<h3>👷 Pracownicy – zarobki</h3>
-<canvas id="workerChart"></canvas>
-</div>
-
-<div class="card">
-<h3>🧱 Materiały</h3>
-<input id="matName" placeholder="Materiał">
-<input id="matCost" type="number" placeholder="Koszt">
-<button onclick="addMaterial()">Dodaj</button>
-<div id="materials"></div>
-</div>
-
-<div class="card">
-<h3>📝 Notatki</h3>
-<textarea id="noteText" placeholder="Notatka..."></textarea>
-<button onclick="addNote()">Dodaj</button>
-<div id="notes"></div>
-</div>
-
-<div class="card">
-<button onclick="backup()">💾 Backup</button>
-<input type="file" onchange="restore(this)">
+<h3>Backup</h3>
+<button onclick="exportData()">Eksportuj</button>
+<input type="file" onchange="importData(event)">
+<button onclick="exportCSV()">Eksport do Excel (CSV)</button>
 </div>
 
 </div>
 
 <script>
-let db=JSON.parse(localStorage.erpPro)||{
+let data=JSON.parse(localStorage.getItem("erp"))||{
 workers:[],
-entries:[],
+hours:[],
 advances:[],
 materials:[],
-notes:[]
-};
-const save=()=>localStorage.erpPro=JSON.stringify(db);
+notes:""
+}
 
-let cur=new Date();
-const today=new Date().toISOString().slice(0,10);
+function save(){localStorage.setItem("erp",JSON.stringify(data));render()}
 
 function addWorker(){
-db.workers.push({name:wName.value,rate:+wRate.value});
-wName.value=wRate.value="";
-save();render();
+data.workers.push({id:Date.now(),name:workerName.value,rate:Number(workerRate.value)})
+save()
 }
 
-function addEntry(){
-if(!entryWorker.value)return;
-db.entries.push({date:today,worker:entryWorker.value,hours:+entryHours.value});
-entryHours.value="";
-save();render();
-}
-function addEntryAll(){
-db.workers.forEach(w=>{
-db.entries.push({date:today,worker:w.name,hours:+entryHours.value});
-});
-entryHours.value="";
-save();render();
+function addHours(){
+data.hours.push({worker:Number(hourWorker.value),date:hourDate.value,hours:Number(hourCount.value)})
+save()
 }
 
 function addAdvance(){
-db.advances.push({date:today,worker:advWorker.value,amount:+advAmount.value});
-advAmount.value="";
-save();render();
+data.advances.push({worker:Number(advWorker.value),date:advDate.value,amount:Number(advAmount.value)})
+save()
 }
 
 function addMaterial(){
-db.materials.push({name:matName.value,cost:+matCost.value});
-matName.value=matCost.value="";
-save();render();
+data.materials.push(materialInput.value)
+materialInput.value=""
+save()
 }
 
-function addNote(){
-db.notes.push(noteText.value);
-noteText.value="";
-save();render();
+function saveNotes(){
+data.notes=notes.value
+save()
 }
 
-function buildCalendar(){
-calendar.innerHTML="";
-monthLabel.textContent=cur.toLocaleDateString("pl",{month:"long",year:"numeric"});
-let days=new Date(cur.getFullYear(),cur.getMonth()+1,0).getDate();
-for(let i=1;i<=days;i++){
-let d=new Date(cur.getFullYear(),cur.getMonth(),i);
-let k=d.toISOString().slice(0,10);
-let weekend=d.getDay()==0||d.getDay()==6;
-calendar.innerHTML+=`
-<div class="day ${weekend?'weekend':''} ${k===today?'today':''}">
-${i}
-${db.entries.some(e=>e.date===k)?'<div class="dot"></div>':''}
-</div>`;
-}
+function exportData(){
+const blob=new Blob([JSON.stringify(data)],{type:"application/json"})
+const a=document.createElement("a")
+a.href=URL.createObjectURL(blob)
+a.download="erp-backup.json"
+a.click()
 }
 
-function weekKey(date){
-let d=new Date(date);let day=d.getDay()||7;
-d.setDate(d.getDate()-day+1);
-return d.toISOString().slice(0,10);
+function importData(e){
+const file=e.target.files[0]
+const reader=new FileReader()
+reader.onload=function(){
+data=JSON.parse(reader.result)
+save()
+}
+reader.readAsText(file)
 }
 
-function weeklySummary(){
-let map={};
-db.entries.forEach(e=>{
-let w=weekKey(e.date);
-map[w]=map[w]||{};
-map[w][e.worker]=(map[w][e.worker]||0)+e.hours;
-});
-db.advances.forEach(a=>{
-let w=weekKey(a.date);
-map[w]=map[w]||{};
-map[w][a.worker]=(map[w][a.worker]||0)-a.amount;
-});
-weekly.innerHTML="";
-for(let w in map){
-weekly.innerHTML+=`<b>Tydzień od ${w}</b><br>`;
-for(let p in map[w]){
-let r=db.workers.find(x=>x.name===p)?.rate||0;
-let v=map[w][p];
-weekly.innerHTML+=`${p}: ${(v>0?v*r:v).toFixed(2)} zł<br>`;
-}
-weekly.innerHTML+="<hr>";
-}
-}
-
-function drawBars(canvas,vals,labels){
-let c=canvas.getContext("2d");
-c.clearRect(0,0,400,200);
-vals.forEach((v,i)=>{
-c.fillStyle="#5fa38c";
-c.fillRect(i*80+20,180-v,40,v);
-c.fillStyle="#000";
-c.fillText(labels[i],i*80+20,195);
-});
-}
-
-function drawCharts(){
-let m=cur.toISOString().slice(0,7);
-let hours=0,money=0;
-let perWorker={};
-
-db.entries.forEach(e=>{
-if(e.date.startsWith(m)){
-let r=db.workers.find(w=>w.name===e.worker)?.rate||0;
-hours+=e.hours;
-money+=e.hours*r;
-perWorker[e.worker]=(perWorker[e.worker]||0)+e.hours*r;
-}
-});
-
-drawBars(hoursChart,[hours],[ "h" ]);
-drawBars(moneyChart,[money/5],[ "zł" ]);
-
-drawBars(workerChart,
-Object.values(perWorker).map(v=>v/5),
-Object.keys(perWorker)
-);
-}
-
-function stats(){
-let earned=0,adv=0;
-db.entries.forEach(e=>{
-let r=db.workers.find(w=>w.name===e.worker)?.rate||0;
-earned+=e.hours*r;
-});
-db.advances.forEach(a=>adv+=a.amount);
-earnedEl=earned;
-document.getElementById("earned").textContent=earned.toFixed(2);
-document.getElementById("adv").textContent=adv.toFixed(2);
-document.getElementById("pay").textContent=(earned-adv).toFixed(2);
-}
-
-function backup(){
-const b=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});
-const a=document.createElement("a");
-a.href=URL.createObjectURL(b);
-a.download="erp-backup.json";
-a.click();
-}
-
-function restore(i){
-const r=new FileReader();
-r.onload=e=>{db=JSON.parse(e.target.result);save();render();}
-r.readAsText(i.files[0]);
+function exportCSV(){
+let csv="Pracownik,Godziny,Zarobek\n"
+data.workers.forEach(w=>{
+let hrs=data.hours.filter(h=>h.worker==w.id).reduce((a,b)=>a+b.hours,0)
+csv+=w.name+","+hrs+","+(hrs*w.rate)+"\n"
+})
+const blob=new Blob([csv],{type:"text/csv"})
+const a=document.createElement("a")
+a.href=URL.createObjectURL(blob)
+a.download="raport.csv"
+a.click()
 }
 
 function render(){
-buildCalendar();
-weeklySummary();
-drawCharts();
-stats();
-
-workers.innerHTML="";
-entryWorker.innerHTML=advWorker.innerHTML="";
-
-db.workers.forEach(w=>{
-workers.innerHTML+=`<div class="row">${w.name} (${w.rate} zł/h)</div>`;
-entryWorker.innerHTML+=`<option>${w.name}</option>`;
-advWorker.innerHTML+=`<option>${w.name}</option>`;
-});
-
-materials.innerHTML=db.materials.map(m=>`${m.name}: ${m.cost} zł`).join("<br>");
-notes.innerHTML=db.notes.join("<br>");
+workersList.innerHTML=""
+hourWorker.innerHTML=""
+advWorker.innerHTML=""
+data.workers.forEach(w=>{
+workersList.innerHTML+=w.name+" ("+w.rate+" zł/h)<br>"
+hourWorker.innerHTML+=`<option value="${w.id}">${w.name}</option>`
+advWorker.innerHTML+=`<option value="${w.id}">${w.name}</option>`
+})
+materials.innerHTML=""
+data.materials.forEach(m=>materials.innerHTML+="<li>"+m+"</li>")
+notes.value=data.notes
+renderSummary()
+renderCalendar()
+renderCharts()
 }
 
-render();
+function renderSummary(){
+let earned=0
+data.workers.forEach(w=>{
+let hrs=data.hours.filter(h=>h.worker==w.id)
+.reduce((a,b)=>a+b.hours,0)
+earned+=hrs*w.rate
+})
+let adv=data.advances.reduce((a,b)=>a+b.amount,0)
+earnedEl=document.getElementById("earned")
+advEl=document.getElementById("adv")
+payEl=document.getElementById("pay")
+earnedEl.textContent=earned
+advEl.textContent=adv
+payEl.textContent=earned-adv
+}
+
+function renderCalendar(){
+calendar.innerHTML=""
+const now=new Date()
+const year=now.getFullYear()
+const month=now.getMonth()
+const first=new Date(year,month,1)
+const last=new Date(year,month+1,0)
+const days=["Pn","Wt","Śr","Cz","Pt","Sb","Nd"]
+days.forEach(d=>calendar.innerHTML+=`<div><b>${d}</b></div>`)
+for(let i=1;i<=last.getDate();i++){
+let d=new Date(year,month,i)
+let div=document.createElement("div")
+div.className="day"
+if(d.getDay()==0||d.getDay()==6)div.classList.add("weekend")
+if(i==now.getDate())div.classList.add("today")
+div.innerHTML=i
+let work=data.hours.find(h=>new Date(h.date).getDate()==i)
+if(work)div.innerHTML+=`<div class="dot"></div>`
+calendar.appendChild(div)
+}
+}
+
+let hoursChart,moneyChart
+
+function renderCharts(){
+let labels=data.workers.map(w=>w.name)
+let hoursData=data.workers.map(w=>
+data.hours.filter(h=>h.worker==w.id)
+.reduce((a,b)=>a+b.hours,0))
+let moneyData=data.workers.map((w,i)=>hoursData[i]*w.rate)
+
+if(hoursChart)hoursChart.destroy()
+if(moneyChart)moneyChart.destroy()
+
+hoursChart=new Chart(hoursChart=document.getElementById("hoursChart"),{
+type:"bar",
+data:{labels:labels,datasets:[{label:"Godziny",data:hoursData,backgroundColor:"#2f8f7a"}]}
+})
+
+moneyChart=new Chart(moneyChart=document.getElementById("moneyChart"),{
+type:"bar",
+data:{labels:labels,datasets:[{label:"Zarobek",data:moneyData,backgroundColor:"#22655e"}]}
+})
+}
+
+render()
 </script>
+
 </body>
 </html>
