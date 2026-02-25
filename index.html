@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="style.css">
   <meta name="theme-color" content="#5fa68a">
 
-  <!-- Chart.js CDN -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -85,10 +85,20 @@
     <div id="advancesList"></div>
   </section>
 
-  <!-- WYPŁATY / PODSUMOWANIE -->
+  <!-- WYPŁATY -->
   <section class="card">
-    <h2>💰 Wypłaty</h2>
+    <h2>💰 Wypłaty – całość</h2>
     <div id="payouts"></div>
+  </section>
+
+  <!-- RAPORT TYGODNIOWY -->
+  <section class="card">
+    <div id="weeklyReport"></div>
+  </section>
+
+  <!-- RAPORT FIRMY -->
+  <section class="card">
+    <div id="companyReport"></div>
   </section>
 
   <!-- WYKRESY -->
@@ -107,7 +117,7 @@
 
 </main>
 
-<!-- KOLEJNOŚĆ SKRYPTÓW JEST BARDZO WAŻNA -->
+<!-- KOLEJNOŚĆ SKRYPTÓW MA ZNACZENIE -->
 
 <script src="storage.js"></script>
 <script src="data-init.js"></script>
