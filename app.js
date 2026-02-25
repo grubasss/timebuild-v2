@@ -1,12 +1,47 @@
-// ====== RAPORTY ======
+// ===== INIT =====
+
+document.addEventListener("DOMContentLoaded", () => {
+    init();
+});
+
+function init() {
+    loadDB();
+    renderAll();
+}
+
+function renderAll() {
+    renderStats();
+    renderWeeklyReport();
+    renderGlobalReport();
+}
+
+// ===== STATYSTYKI =====
+
+function renderStats() {
+
+    let totalHours = db.entries.reduce((s,e)=>s+e.hours,0);
+    let totalEarned = db.entries.reduce((s,e)=>{
+        const worker = db.workers.find(w=>w.id===e.worker);
+        return s + (e.hours * worker.rate);
+    },0);
+    let totalAdvances = db.advances.reduce((s,a)=>s+a.amount,0);
+
+    document.getElementById("stats").innerHTML = `
+        <b>Zarobione:</b> ${totalEarned.toFixed(2)} zł<br>
+        <b>Zaliczki:</b> ${totalAdvances.toFixed(2)} zł<br>
+        <b>Do wypłaty:</b> ${(totalEarned-totalAdvances).toFixed(2)} zł
+    `;
+}
+
+// ===== TYGODNIOWY =====
 
 function getWeekRange(dateStr) {
     const date = new Date(dateStr);
     const day = date.getDay();
-    const diffToMonday = (day === 0 ? -6 : 1) - day;
+    const diff = (day === 0 ? -6 : 1) - day;
 
     const monday = new Date(date);
-    monday.setDate(date.getDate() + diffToMonday);
+    monday.setDate(date.getDate() + diff);
 
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
@@ -17,11 +52,8 @@ function getWeekRange(dateStr) {
     };
 }
 
-function inRange(date, start, end) {
-    return date >= start && date <= end;
-}
-
 function renderWeeklyReport() {
+
     const today = new Date().toISOString().slice(0,10);
     const week = getWeekRange(today);
 
@@ -35,17 +67,19 @@ function renderWeeklyReport() {
 
         const entries = db.entries.filter(e =>
             e.worker === worker.id &&
-            inRange(e.date, week.start, week.end)
+            e.date >= week.start &&
+            e.date <= week.end
         );
 
         const advances = db.advances.filter(a =>
             a.worker === worker.id &&
-            inRange(a.date, week.start, week.end)
+            a.date >= week.start &&
+            a.date <= week.end
         );
 
-        const hours = entries.reduce((sum,e)=>sum+e.hours,0);
+        const hours = entries.reduce((s,e)=>s+e.hours,0);
         const earned = hours * worker.rate;
-        const advanceSum = advances.reduce((sum,a)=>sum+a.amount,0);
+        const advanceSum = advances.reduce((s,a)=>s+a.amount,0);
         const toPay = earned - advanceSum;
 
         totalHours += hours;
@@ -53,28 +87,33 @@ function renderWeeklyReport() {
         totalAdvances += advanceSum;
 
         html += `
-        <div class="reportBox">
-            <b>${worker.name}</b><br>
-            Godziny: ${hours}<br>
-            Zarobione: ${earned} zł<br>
-            Zaliczki: ${advanceSum} zł<br>
-            Do wypłaty: ${toPay} zł
-        </div>`;
+            <div style="margin-bottom:15px;">
+                <b>${worker.name}</b><br>
+                Godziny: ${hours}<br>
+                Zarobione: ${earned.toFixed(2)} zł<br>
+                Zaliczki: ${advanceSum.toFixed(2)} zł<br>
+                Do wypłaty: ${toPay.toFixed(2)} zł
+            </div>
+        `;
     });
 
     html += `
-    <hr>
-    <b>Firma razem:</b><br>
-    Godziny: ${totalHours}<br>
-    Zarobione: ${totalEarned} zł<br>
-    Zaliczki: ${totalAdvances} zł<br>
-    Do wypłaty: ${totalEarned - totalAdvances} zł
+        <hr>
+        <b>Firma razem:</b><br>
+        Godziny: ${totalHours}<br>
+        Zarobione: ${totalEarned.toFixed(2)} zł<br>
+        Zaliczki: ${totalAdvances.toFixed(2)} zł<br>
+        Do wypłaty: ${(totalEarned-totalAdvances).toFixed(2)} zł
     `;
 
     document.getElementById("weeklyReport").innerHTML = html;
 }
 
+// ===== GLOBALNY =====
+
 function renderGlobalReport() {
+
+    let html = `<h2>📊 Podsumowanie całkowite</h2>`;
 
     let totalHours = 0;
     let totalEarned = 0;
@@ -85,30 +124,34 @@ function renderGlobalReport() {
         const entries = db.entries.filter(e => e.worker === worker.id);
         const advances = db.advances.filter(a => a.worker === worker.id);
 
-        const hours = entries.reduce((sum,e)=>sum+e.hours,0);
+        const hours = entries.reduce((s,e)=>s+e.hours,0);
         const earned = hours * worker.rate;
-        const advanceSum = advances.reduce((sum,a)=>sum+a.amount,0);
+        const advanceSum = advances.reduce((s,a)=>s+a.amount,0);
         const toPay = earned - advanceSum;
 
         totalHours += hours;
         totalEarned += earned;
         totalAdvances += advanceSum;
 
-        document.getElementById("payouts").innerHTML += `
-        <div class="reportBox">
-            <b>${worker.name}</b><br>
-            Godziny łącznie: ${hours}<br>
-            Zarobione: ${earned} zł<br>
-            Zaliczki: ${advanceSum} zł<br>
-            Do wypłaty: ${toPay} zł
-        </div>`;
+        html += `
+            <div style="margin-bottom:15px;">
+                <b>${worker.name}</b><br>
+                Godziny łącznie: ${hours}<br>
+                Zarobione: ${earned.toFixed(2)} zł<br>
+                Zaliczki: ${advanceSum.toFixed(2)} zł<br>
+                Do wypłaty: ${toPay.toFixed(2)} zł
+            </div>
+        `;
     });
 
-    document.getElementById("companyReport").innerHTML = `
-    <h2>📊 Firma łącznie</h2>
-    Godziny: ${totalHours}<br>
-    Zarobione: ${totalEarned} zł<br>
-    Zaliczki: ${totalAdvances} zł<br>
-    Do wypłaty: ${totalEarned - totalAdvances} zł
+    html += `
+        <hr>
+        <b>Firma razem:</b><br>
+        Godziny: ${totalHours}<br>
+        Zarobione: ${totalEarned.toFixed(2)} zł<br>
+        Zaliczki: ${totalAdvances.toFixed(2)} zł<br>
+        Do wypłaty: ${(totalEarned-totalAdvances).toFixed(2)} zł
     `;
+
+    document.getElementById("companyReport").innerHTML = html;
 }
