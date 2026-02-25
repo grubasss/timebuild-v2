@@ -5,12 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>House Concept ERP COMPLETE+</title>
 
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
-
 <meta name="theme-color" content="#5fa68a">
 
+<!-- CHART.JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <header class="top">
@@ -20,86 +23,99 @@
 
 <main class="wrap">
 
+<!-- STATYSTYKI -->
 <section id="stats" class="card"></section>
 
+<!-- KALENDARZ -->
 <section class="card">
-<h2>📅 Kalendarz</h2>
+    <h2>📅 Kalendarz</h2>
 
-<div class="calendar-header">
-    <button id="prevMonth">◀</button>
-    <span id="monthLabel"></span>
-    <button id="nextMonth">▶</button>
-</div>
+    <div class="calendar-header">
+        <button id="prevMonth">◀</button>
+        <span id="monthLabel"></span>
+        <button id="nextMonth">▶</button>
+    </div>
 
-<div id="calendar"></div>
+    <div class="weekdays">
+        <div>Pn</div>
+        <div>Wt</div>
+        <div>Śr</div>
+        <div>Cz</div>
+        <div>Pt</div>
+        <div>Sb</div>
+        <div>Nd</div>
+    </div>
 
+    <div id="calendar"></div>
 </section>
 
+<!-- PRACOWNICY -->
 <section class="card">
-<h2>👷 Pracownicy</h2>
-<input id="workerName" placeholder="Imię">
-<input id="workerRate" placeholder="Stawka zł/h" type="number">
-<button onclick="addWorker()">Dodaj pracownika</button>
-<div id="workersList"></div>
+    <h2>👷 Pracownicy</h2>
+    <input id="workerName" placeholder="Imię">
+    <input id="workerRate" placeholder="Stawka zł/h" type="number">
+    <button onclick="addWorker()">Dodaj pracownika</button>
+    <div id="workersList"></div>
 </section>
 
+<!-- PROJEKTY -->
 <section class="card">
-<h2>🏗 Projekty</h2>
-<input id="projectName" placeholder="Projekt">
-<button onclick="addProject()">Dodaj projekt</button>
-<div id="projectsList"></div>
+    <h2>📁 Projekty</h2>
+    <input id="projectName" placeholder="Projekt">
+    <button onclick="addProject()">Dodaj projekt</button>
+    <div id="projectsList"></div>
 </section>
 
+<!-- GODZINY -->
 <section class="card">
-<h2>⏱ Godziny</h2>
+    <h2>⏱ Godziny</h2>
 
-<select id="hoursWorker"></select>
-<select id="hoursProject"></select>
+    <select id="hoursWorker"></select>
+    <select id="hoursProject"></select>
+    <input type="date" id="hoursDate">
+    <input type="number" id="hoursValue" placeholder="Godziny">
 
-<input id="hoursDate" type="date">
-<input id="hoursValue" type="number" placeholder="Godziny">
-
-<button onclick="addHoursSingle()">Jednemu</button>
-<button onclick="addHoursAll()">Wszystkim</button>
-
-<div id="hoursList"></div>
+    <button onclick="addHours()">Dodaj wpis</button>
 </section>
 
+<!-- ZALICZKI -->
 <section class="card">
-<h2>💰 Zaliczki</h2>
+    <h2>💰 Zaliczki</h2>
 
-<select id="advanceWorker"></select>
-<input id="advanceDate" type="date">
-<input id="advanceValue" type="number" placeholder="Kwota">
+    <select id="advanceWorker"></select>
+    <input type="date" id="advanceDate">
+    <input type="number" id="advanceValue" placeholder="Kwota">
 
-<button onclick="addAdvance()">Dodaj zaliczkę</button>
-
-<div id="advancesList"></div>
+    <button onclick="addAdvance()">Dodaj zaliczkę</button>
 </section>
 
+<!-- WYPŁATY / ROZLICZENIE -->
 <section class="card">
-<h2>📊 Wypłaty</h2>
-<div id="payouts"></div>
+    <h2>📊 Wypłaty</h2>
+    <div id="payouts"></div>
 </section>
 
+<!-- WYKRESY -->
 <section class="card">
-<h2>📈 Wykresy</h2>
-<canvas id="hoursChart"></canvas>
-<canvas id="moneyChart"></canvas>
+    <h2>📈 Wykresy</h2>
+    <canvas id="hoursChart"></canvas>
+    <canvas id="moneyChart"></canvas>
 </section>
 
+<!-- BACKUP -->
 <section class="card">
-<h2>💾 Backup</h2>
-<button onclick="exportData()">Pobierz backup</button>
-<input type="file" onchange="importData(event)">
+    <h2>💾 Backup</h2>
+    <button onclick="exportData()">Pobierz backup</button>
+    <input type="file" onchange="importData(event)">
 </section>
 
 </main>
 
+<!-- SKRYPTY – KOLEJNOŚĆ MA ZNACZENIE -->
 <script src="storage.js"></script>
 <script src="data-init.js"></script>
-<script src="charts.js"></script>
 <script src="app.js"></script>
+<script src="charts.js"></script>
 
 </body>
 </html>
