@@ -224,3 +224,44 @@ function addAdvance() {
 }
 
 render();
+function getWeekStart(dateStr) {
+    const date = new Date(dateStr);
+    const day = date.getDay() || 7;
+    date.setDate(date.getDate() - day + 1);
+    return date.toISOString().slice(0,10);
+}
+
+function renderWeeklyReport() {
+    const container = document.getElementById("payouts");
+    container.innerHTML = "<h3>Rozliczenie tygodniowe (Pn–Nd)</h3>";
+
+    const weeks = {};
+
+    db.entries.forEach(e => {
+        const weekStart = getWeekStart(e.date);
+        if (!weeks[weekStart]) weeks[weekStart] = [];
+        weeks[weekStart].push(e);
+    });
+
+    Object.keys(weeks).forEach(week => {
+        container.innerHTML += `<b>Tydzień od ${week}</b>`;
+
+        db.workers.forEach(w => {
+            const entries = weeks[week].filter(e => e.worker === w.id);
+            const hours = entries.reduce((sum, e) => sum + e.hours, 0);
+            const earned = hours * w.rate;
+
+            const advances = db.advances
+                .filter(a => a.worker === w.id && getWeekStart(a.date) === week)
+                .reduce((sum, a) => sum + a.amount, 0);
+
+            container.innerHTML += `
+                <div class="row">
+                    ${w.name}: ${hours}h | Zarobek: ${earned.toFixed(2)} zł | Zaliczki: ${advances} zł | Do wypłaty: ${(earned - advances).toFixed(2)} zł
+                </div>
+            `;
+        });
+
+        container.innerHTML += "<hr>";
+    });
+}
