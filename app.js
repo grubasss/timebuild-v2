@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let calendarDate = new Date();
 let selectedDay = formatLocal(new Date());
+let today = formatLocal(new Date());
 
 function init() {
     loadDB();
@@ -31,14 +32,13 @@ function renderAll() {
     if (typeof updateCharts === "function") updateCharts();
 }
 
-// ===== DODAWANIE GODZIN =====
+// ===== GODZINY =====
 
 function addHours(){
 
     const worker = document.getElementById("hoursWorker")?.value;
     const project = document.getElementById("hoursProject")?.value;
     const hours = parseFloat(document.getElementById("hoursValue")?.value);
-
     const date = selectedDay;
 
     if(!worker || !project || !date || !hours){
@@ -55,12 +55,55 @@ function addHours(){
     });
 
     saveDB();
+    renderAll();
+}
 
-    renderEntries();
-    renderStats();
-    renderCalendar();
+// ===== ZALICZKI =====
 
-    if (typeof updateCharts === "function") updateCharts();
+function addAdvance(){
+
+    const worker = document.getElementById("advanceWorker")?.value;
+    const amount = parseFloat(document.getElementById("advanceValue")?.value);
+    const date = document.getElementById("advanceDate")?.value || selectedDay;
+
+    if(!worker || !amount){
+        alert("Uzupełnij dane zaliczki");
+        return;
+    }
+
+    db.advances.push({
+        id: Date.now(),
+        worker,
+        date,
+        amount
+    });
+
+    saveDB();
+    renderAll();
+}
+
+function editAdvance(id){
+
+    const adv = db.advances.find(a=>a.id==id);
+    if(!adv) return;
+
+    const newAmount = prompt("Nowa kwota:", adv.amount);
+    if(!newAmount) return;
+
+    adv.amount = parseFloat(newAmount);
+
+    saveDB();
+    renderAll();
+}
+
+function deleteAdvance(id){
+
+    if(!confirm("Usunąć zaliczkę?")) return;
+
+    db.advances = db.advances.filter(a=>a.id!=id);
+
+    saveDB();
+    renderAll();
 }
 
 // ===== STATYSTYKI =====
@@ -120,13 +163,22 @@ function renderProjects(){
 // ===== SELECTORS =====
 
 function renderSelectors(){
+
     const workerSel = document.getElementById("hoursWorker");
     const projectSel = document.getElementById("hoursProject");
+    const advanceSel = document.getElementById("advanceWorker");
 
     if(workerSel){
         workerSel.innerHTML = "";
         db.workers.forEach(w=>{
             workerSel.innerHTML += `<option value="${w.id}">${w.name}</option>`;
+        });
+    }
+
+    if(advanceSel){
+        advanceSel.innerHTML = "";
+        db.workers.forEach(w=>{
+            advanceSel.innerHTML += `<option value="${w.id}">${w.name}</option>`;
         });
     }
 
@@ -160,17 +212,27 @@ function renderEntries(){
 // ===== ADVANCES =====
 
 function renderAdvances(){
+
     const list = document.getElementById("advancesList");
     if(!list) return;
 
     let html = "";
+
     db.advances.forEach(a=>{
         const worker = db.workers.find(w=>w.id===a.worker);
+
         html += `
         <div class="row">
-            ${worker?.name||""} – ${a.amount} zł (${a.date})
+            <div>
+                ${worker?.name||""} – ${a.amount} zł (${a.date})
+            </div>
+            <div>
+                <button onclick="editAdvance(${a.id})">Edytuj</button>
+                <button onclick="deleteAdvance(${a.id})">Usuń</button>
+            </div>
         </div>`;
     });
+
     list.innerHTML = html;
 }
 
@@ -229,20 +291,23 @@ function renderCalendar(){
             el.classList.add("active");
         }
 
+        if(dateStr === today){
+            el.style.outline = "3px solid #3b82f6";
+        }
+
         const hasHours = db.entries.some(e => e.date === dateStr);
+        const hasAdvance = db.advances.some(a => a.date === dateStr);
 
         el.innerHTML = `
             <div class="day-number">${d}</div>
-            ${hasHours ? '<div class="dot"></div>' : ''}
+            ${hasHours || hasAdvance ? '<div class="dot"></div>' : ''}
         `;
 
         el.onclick = ()=>{
             selectedDay = dateStr;
-
             if(dateInput){
                 dateInput.value = dateStr;
             }
-
             renderCalendar();
         };
 
