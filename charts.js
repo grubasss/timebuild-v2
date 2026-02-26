@@ -3,29 +3,40 @@ let moneyChartInstance = null;
 
 function renderCharts() {
 
-    if (!window.db) return;
-    if (!window.Chart) return;
+    // Sprawdzenie czy istnieje db i Chart
+    if (typeof db === "undefined") return;
+    if (typeof Chart === "undefined") return;
 
     const hoursCanvas = document.getElementById("hoursChart");
     const moneyCanvas = document.getElementById("moneyChart");
 
     if (!hoursCanvas || !moneyCanvas) return;
 
+    // Jeśli brak pracowników – nie renderuj
+    if (!db.workers || db.workers.length === 0) return;
+
     const workerNames = db.workers.map(w => w.name);
 
     const hoursData = db.workers.map(w =>
-        db.entries
+        (db.entries || [])
             .filter(e => e.worker === w.id)
-            .reduce((sum, e) => sum + Number(e.hours), 0)
+            .reduce((sum, e) => sum + Number(e.hours || 0), 0)
     );
 
     const moneyData = db.workers.map((w, index) =>
-        hoursData[index] * Number(w.rate)
+        hoursData[index] * Number(w.rate || 0)
     );
 
-    if (hoursChartInstance) hoursChartInstance.destroy();
-    if (moneyChartInstance) moneyChartInstance.destroy();
+    // Niszczenie starych wykresów
+    if (hoursChartInstance) {
+        hoursChartInstance.destroy();
+    }
 
+    if (moneyChartInstance) {
+        moneyChartInstance.destroy();
+    }
+
+    // Wykres godzin
     hoursChartInstance = new Chart(hoursCanvas, {
         type: "bar",
         data: {
@@ -37,10 +48,12 @@ function renderCharts() {
             }]
         },
         options: {
-            responsive: true
+            responsive: true,
+            maintainAspectRatio: false
         }
     });
 
+    // Wykres zarobków
     moneyChartInstance = new Chart(moneyCanvas, {
         type: "bar",
         data: {
@@ -52,15 +65,16 @@ function renderCharts() {
             }]
         },
         options: {
-            responsive: true
+            responsive: true,
+            maintainAspectRatio: false
         }
     });
 
     console.log("Wykresy wyrenderowane");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => {
-        renderCharts();
-    }, 500);
+
+// Uruchom po pełnym załadowaniu strony
+window.addEventListener("load", () => {
+    renderCharts();
 });
