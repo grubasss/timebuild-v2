@@ -10,7 +10,6 @@ let selectedDay = formatLocal(new Date());
 function init() {
     loadDB();
 
-    // 🔑 USTAW input daty na wybrany dzień
     const dateInput = document.getElementById("hoursDate");
     if(dateInput){
         dateInput.value = selectedDay;
@@ -32,14 +31,13 @@ function renderAll() {
     if (typeof updateCharts === "function") updateCharts();
 }
 
-// ===== DODAWANIE GODZIN =====
+// ===== GODZINY =====
 
 function addHours(){
 
     const worker = document.getElementById("hoursWorker")?.value;
     const project = document.getElementById("hoursProject")?.value;
     const hours = parseFloat(document.getElementById("hoursValue")?.value);
-
     const date = selectedDay;
 
     if(!worker || !project || !date || !hours){
@@ -56,12 +54,100 @@ function addHours(){
     });
 
     saveDB();
+    renderAll();
+}
 
-    renderEntries();
-    renderStats();
-    renderCalendar();
+// ===== EDYCJA GODZIN =====
 
-    if (typeof updateCharts === "function") updateCharts();
+function editEntry(id){
+    const entry = db.entries.find(e => e.id === id);
+    if(!entry) return;
+
+    const newHours = prompt("Nowa liczba godzin:", entry.hours);
+    if(newHours === null) return;
+
+    entry.hours = parseFloat(newHours) || entry.hours;
+
+    saveDB();
+    renderAll();
+}
+
+// ===== USUWANIE GODZIN =====
+
+function deleteEntry(id){
+    if(!confirm("Usunąć wpis?")) return;
+
+    db.entries = db.entries.filter(e => e.id !== id);
+    saveDB();
+    renderAll();
+}
+
+// ===== ZALICZKI =====
+
+function editAdvance(id){
+    const adv = db.advances.find(a => a.id === id);
+    if(!adv) return;
+
+    const newVal = prompt("Nowa kwota:", adv.amount);
+    if(newVal === null) return;
+
+    adv.amount = parseFloat(newVal) || adv.amount;
+
+    saveDB();
+    renderAll();
+}
+
+function deleteAdvance(id){
+    if(!confirm("Usunąć zaliczkę?")) return;
+
+    db.advances = db.advances.filter(a => a.id !== id);
+    saveDB();
+    renderAll();
+}
+
+// ===== PRACOWNICY =====
+
+function editWorker(id){
+    const w = db.workers.find(w => w.id === id);
+    if(!w) return;
+
+    const newName = prompt("Nowe imię:", w.name);
+    const newRate = prompt("Nowa stawka:", w.rate);
+
+    if(newName) w.name = newName;
+    if(newRate) w.rate = parseFloat(newRate);
+
+    saveDB();
+    renderAll();
+}
+
+function deleteWorker(id){
+    if(!confirm("Usunąć pracownika?")) return;
+
+    db.workers = db.workers.filter(w => w.id !== id);
+    saveDB();
+    renderAll();
+}
+
+// ===== PROJEKTY =====
+
+function editProject(id){
+    const p = db.projects.find(p => p.id === id);
+    if(!p) return;
+
+    const newName = prompt("Nowa nazwa:", p.name);
+    if(newName) p.name = newName;
+
+    saveDB();
+    renderAll();
+}
+
+function deleteProject(id){
+    if(!confirm("Usunąć projekt?")) return;
+
+    db.projects = db.projects.filter(p => p.id !== id);
+    saveDB();
+    renderAll();
 }
 
 // ===== STATYSTYKI =====
@@ -86,60 +172,49 @@ function renderStats(){
     `;
 }
 
-// ===== WORKERS =====
+// ===== WORKERS RENDER =====
 
 function renderWorkers(){
     const list = document.getElementById("workersList");
     if(!list) return;
 
     let html = "";
-    db.workers.forEach(worker => {
+    db.workers.forEach(w=>{
         html += `
         <div class="row">
+            <div><b>${w.name}</b> (${w.rate} zł/h)</div>
             <div>
-                <b>${worker.name}</b> (${worker.rate} zł/h)
+                <button onclick="editWorker(${w.id})">Edytuj</button>
+                <button onclick="deleteWorker(${w.id})">Usuń</button>
             </div>
-        </div>
-        `;
+        </div>`;
     });
+
     list.innerHTML = html;
 }
 
-// ===== PROJECTS =====
+// ===== PROJECTS RENDER =====
 
 function renderProjects(){
     const list = document.getElementById("projectsList");
     if(!list) return;
 
     let html = "";
-    db.projects.forEach(p => {
-        html += `<div class="row">${p.name}</div>`;
+    db.projects.forEach(p=>{
+        html += `
+        <div class="row">
+            <div>${p.name}</div>
+            <div>
+                <button onclick="editProject(${p.id})">Edytuj</button>
+                <button onclick="deleteProject(${p.id})">Usuń</button>
+            </div>
+        </div>`;
     });
+
     list.innerHTML = html;
 }
 
-// ===== SELECTORS =====
-
-function renderSelectors(){
-    const workerSel = document.getElementById("hoursWorker");
-    const projectSel = document.getElementById("hoursProject");
-
-    if(workerSel){
-        workerSel.innerHTML = "";
-        db.workers.forEach(w=>{
-            workerSel.innerHTML += `<option value="${w.id}">${w.name}</option>`;
-        });
-    }
-
-    if(projectSel){
-        projectSel.innerHTML = "";
-        db.projects.forEach(p=>{
-            projectSel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-        });
-    }
-}
-
-// ===== ENTRIES =====
+// ===== ENTRIES RENDER =====
 
 function renderEntries(){
     const list = document.getElementById("entriesList");
@@ -152,13 +227,20 @@ function renderEntries(){
 
         html += `
         <div class="row">
-            ${worker?.name||""} – ${project?.name||""} – ${e.hours}h (${e.date})
+            <div>
+                ${worker?.name||""} – ${project?.name||""} – ${e.hours}h (${e.date})
+            </div>
+            <div>
+                <button onclick="editEntry(${e.id})">Edytuj</button>
+                <button onclick="deleteEntry(${e.id})">Usuń</button>
+            </div>
         </div>`;
     });
+
     list.innerHTML = html;
 }
 
-// ===== ADVANCES =====
+// ===== ADVANCES RENDER =====
 
 function renderAdvances(){
     const list = document.getElementById("advancesList");
@@ -167,87 +249,16 @@ function renderAdvances(){
     let html = "";
     db.advances.forEach(a=>{
         const worker = db.workers.find(w=>w.id===a.worker);
+
         html += `
         <div class="row">
-            ${worker?.name||""} – ${a.amount} zł (${a.date})
+            <div>${worker?.name||""} – ${a.amount} zł (${a.date})</div>
+            <div>
+                <button onclick="editAdvance(${a.id})">Edytuj</button>
+                <button onclick="deleteAdvance(${a.id})">Usuń</button>
+            </div>
         </div>`;
     });
+
     list.innerHTML = html;
-}
-
-// ===== KALENDARZ =====
-
-function renderCalendar(){
-
-    const calendar = document.getElementById("calendar");
-    const label = document.getElementById("monthLabel");
-    const daysRow = document.getElementById("calendarDays");
-    const dateInput = document.getElementById("hoursDate");
-
-    if(!calendar || !label || !daysRow) return;
-
-    calendar.innerHTML = "";
-    daysRow.innerHTML = "";
-
-    const month = calendarDate.getMonth();
-    const year = calendarDate.getFullYear();
-
-    const monthNames = [
-        "styczeń","luty","marzec","kwiecień","maj","czerwiec",
-        "lipiec","sierpień","wrzesień","październik","listopad","grudzień"
-    ];
-    label.innerText = monthNames[month] + " " + year;
-
-    const dayNames = ["Pn","Wt","Śr","Cz","Pt","Sb","Nd"];
-    dayNames.forEach(d=>{
-        const el = document.createElement("div");
-        el.className = "day-name";
-        el.innerText = d;
-        daysRow.appendChild(el);
-    });
-
-    const firstDay = new Date(year, month, 1);
-    const startDay = (firstDay.getDay() + 6) % 7;
-    const daysInMonth = new Date(year, month+1, 0).getDate();
-
-    for(let i=0;i<startDay;i++){
-        calendar.appendChild(document.createElement("div"));
-    }
-
-    for(let d=1; d<=daysInMonth; d++){
-
-        const date = new Date(year, month, d);
-        const dateStr = formatLocal(date);
-
-        const el = document.createElement("div");
-        el.className = "day";
-
-        if(date.getDay() === 0 || date.getDay() === 6){
-            el.classList.add("weekend");
-        }
-
-        if(dateStr === selectedDay){
-            el.classList.add("active");
-        }
-
-        const hasHours = db.entries.some(e => e.date === dateStr);
-
-        el.innerHTML = `
-            <div class="day-number">${d}</div>
-            ${hasHours ? '<div class="dot"></div>' : ''}
-        `;
-
-        el.onclick = ()=>{
-            selectedDay = dateStr;
-
-            // 🔑 synchronizacja inputa
-            if(dateInput){
-                dateInput.value = dateStr;
-            }
-
-            renderCalendar();
-        };
-
-        calendar.appendChild(el);
-    }
 }
