@@ -151,46 +151,13 @@ function getWeekRangeSafe(dateStr){
         end: formatLocal(sunday)
     };
 }
-
-function normalizeDB(){
-
-    if(!window.db) return;
-
-    db.entries.forEach(e => {
-        if (typeof e.hours === "string") {
-            e.hours = safeNumber(e.hours);
-        }
-        if (e.date && e.date.includes("T")) {
-            e.date = formatLocal(new Date(e.date));
-        }
-    });
-
-    db.advances.forEach(a => {
-        if (typeof a.amount === "string") {
-            a.amount = safeNumber(a.amount);
-        }
-        if (a.date && a.date.includes("T")) {
-            a.date = formatLocal(new Date(a.date));
-        }
-    });
-
-    saveDB();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => {
-        if(typeof db !== "undefined"){
-            normalizeDB();
-        }
-    }, 300);
-});
 </script>
 
 <!-- KOLEJNOŚĆ SKRYPTÓW MA ZNACZENIE -->
 
 <script src="storage.js"></script>
 <script src="data-init.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=4"></script>
 <script src="charts.js"></script>
 <script src="reports-fixed.js"></script>
 
