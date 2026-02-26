@@ -29,6 +29,29 @@ function renderAll() {
     if(typeof updateCharts === "function") updateCharts();
 }
 
+// ===== STATYSTYKI =====
+
+function renderStats(){
+
+    if(!db) return;
+
+    let totalHours = db.entries.reduce((s,e)=>s+e.hours,0);
+    let totalEarned = db.entries.reduce((s,e)=>{
+        const worker = db.workers.find(w=>w.id===e.worker);
+        return s + (e.hours * worker.rate);
+    },0);
+    let totalAdvances = db.advances.reduce((s,a)=>s+a.amount,0);
+
+    const stats = document.getElementById("stats");
+    if(!stats) return;
+
+    stats.innerHTML = `
+        Zarobione: ${totalEarned.toFixed(2)} zł<br>
+        Zaliczki: ${totalAdvances.toFixed(2)} zł<br>
+        Do wypłaty: ${(totalEarned-totalAdvances).toFixed(2)} zł
+    `;
+}
+
 // ===== KALENDARZ =====
 
 function renderCalendar(){
@@ -77,9 +100,7 @@ function renderCalendar(){
         const el = document.createElement("div");
         el.className = "day";
 
-        const weekday = date.getDay();
-
-        if(weekday === 0 || weekday === 6){
+        if(date.getDay() === 0 || date.getDay() === 6){
             el.classList.add("weekend");
         }
 
@@ -103,31 +124,16 @@ function renderCalendar(){
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-
-    const prev = document.getElementById("prevMonth");
-    const next = document.getElementById("nextMonth");
-
-    if(prev) prev.onclick = ()=>{
-        calendarDate.setMonth(calendarDate.getMonth() - 1);
-        renderCalendar();
-    };
-
-    if(next) next.onclick = ()=>{
-        calendarDate.setMonth(calendarDate.getMonth() + 1);
-        renderCalendar();
-    };
-
-});
-
-// ===== WORKERS WITH CHECKBOX =====
+// ===== WORKERS =====
 
 function renderWorkers(){
+
+    const list = document.getElementById("workersList");
+    if(!list) return;
 
     let html = "";
 
     db.workers.forEach(worker => {
-
         html += `
         <div class="row">
             <div>
@@ -144,7 +150,7 @@ function renderWorkers(){
         `;
     });
 
-    document.getElementById("workersList").innerHTML = html;
+    list.innerHTML = html;
 }
 
 // ===== MASOWE GODZINY =====
@@ -154,6 +160,8 @@ function addHoursAll(){
     const project = document.getElementById("hoursProject").value;
     const date = document.getElementById("hoursDate").value;
     const hours = parseFloat(document.getElementById("hoursValue").value);
+
+    if(!project || !date || !hours) return;
 
     db.workers.forEach(w=>{
         db.entries.push({
@@ -178,6 +186,8 @@ function addHoursSelected(){
     const selected = Array.from(
         document.querySelectorAll(".worker-check:checked")
     ).map(el => el.value);
+
+    if(!selected.length) return;
 
     selected.forEach(id=>{
         db.entries.push({
