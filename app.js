@@ -14,6 +14,8 @@ function renderAll() {
     renderStats();
     renderWeeklyReport();
     renderGlobalReport();
+    renderMonthlyReport();
+    renderAdvanceHistory();
     renderCalendar();
 }
 
@@ -35,7 +37,22 @@ function renderStats() {
     `;
 }
 
-// ===== TYGODNIOWY (LOKALNY - POPRAWIONY) =====
+// ===== FUNKCJA TYGODNIOWA FINANSE =====
+
+function getWeeklyFinance(){
+
+    const today = getTodayLocal();
+    const week = getWeekRangeSafe(today);
+
+    let advancesWeek = db.advances.filter(a =>
+        a.date >= week.start &&
+        a.date <= week.end
+    );
+
+    return advancesWeek.reduce((s,a)=>s+a.amount,0);
+}
+
+// ===== RAPORT TYGODNIOWY =====
 
 function renderWeeklyReport() {
 
@@ -82,27 +99,25 @@ function renderWeeklyReport() {
         `;
     });
 
+    let weeklyAdvances = getWeeklyFinance();
+
     html += `
         <hr>
-        <b>Firma razem:</b><br>
-        Godziny: ${totalHours}<br>
-        Zarobione: ${totalEarned.toFixed(2)} zł<br>
-        Zaliczki: ${totalAdvances.toFixed(2)} zł<br>
-        Do wypłaty: ${(totalEarned-totalAdvances).toFixed(2)} zł
+        <h3>📊 Podsumowanie tygodnia</h3>
+        <b>Godziny w tygodniu:</b> ${totalHours}<br>
+        <b>Zarobione:</b> ${totalEarned.toFixed(2)} zł<br>
+        <b>Zaliczki w tygodniu:</b> ${weeklyAdvances.toFixed(2)} zł<br>
+        <b>Do wypłaty:</b> ${(totalEarned-totalAdvances).toFixed(2)} zł
     `;
 
     document.getElementById("weeklyReport").innerHTML = html;
 }
 
-// ===== GLOBALNY =====
+// ===== RAPORT GLOBALNY =====
 
 function renderGlobalReport() {
 
     let html = `<h2>📊 Podsumowanie całkowite</h2>`;
-
-    let totalHours = 0;
-    let totalEarned = 0;
-    let totalAdvances = 0;
 
     db.workers.forEach(worker => {
 
@@ -112,11 +127,6 @@ function renderGlobalReport() {
         const hours = entries.reduce((s,e)=>s+e.hours,0);
         const earned = hours * worker.rate;
         const advanceSum = advances.reduce((s,a)=>s+a.amount,0);
-        const toPay = earned - advanceSum;
-
-        totalHours += hours;
-        totalEarned += earned;
-        totalAdvances += advanceSum;
 
         html += `
             <div style="margin-bottom:15px;">
@@ -124,125 +134,128 @@ function renderGlobalReport() {
                 Godziny łącznie: ${hours}<br>
                 Zarobione: ${earned.toFixed(2)} zł<br>
                 Zaliczki: ${advanceSum.toFixed(2)} zł<br>
-                Do wypłaty: ${toPay.toFixed(2)} zł
+                Do wypłaty: ${(earned-advanceSum).toFixed(2)} zł
             </div>
         `;
     });
 
-    html += `
-        <hr>
-        <b>Firma razem:</b><br>
-        Godziny: ${totalHours}<br>
-        Zarobione: ${totalEarned.toFixed(2)} zł<br>
-        Zaliczki: ${totalAdvances.toFixed(2)} zł<br>
-        Do wypłaty: ${(totalEarned-totalAdvances).toFixed(2)} zł
-    `;
-
     document.getElementById("companyReport").innerHTML = html;
 }
 
-// ===== KALENDARZ ERP =====
+// ===== RAPORT MIESIĘCZNY =====
 
-let calendarDate = new Date();
-let selectedDay = formatLocal(new Date());
+function renderMonthlyReport(){
 
-function renderCalendar(){
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth()+1).padStart(2,'0');
 
-    const calendar = document.getElementById("calendar");
-    const label = document.getElementById("monthLabel");
-    const daysRow = document.getElementById("calendarDays");
+    let start = `${year}-${month}-01`;
+    let end = `${year}-${month}-31`;
 
-    if(!calendar || !label || !daysRow) return;
+    let html = `<h2>📆 Raport miesięczny</h2>`;
 
-    calendar.innerHTML = "";
-    daysRow.innerHTML = "";
+    db.workers.forEach(worker=>{
 
-    const month = calendarDate.getMonth();
-    const year = calendarDate.getFullYear();
+        const entries = db.entries.filter(e =>
+            e.worker===worker.id &&
+            e.date>=start &&
+            e.date<=end
+        );
 
-    const monthNames = [
-        "styczeń","luty","marzec","kwiecień","maj","czerwiec",
-        "lipiec","sierpień","wrzesień","październik","listopad","grudzień"
-    ];
+        const advances = db.advances.filter(a =>
+            a.worker===worker.id &&
+            a.date>=start &&
+            a.date<=end
+        );
 
-    label.innerText = monthNames[month] + " " + year;
+        const hours = entries.reduce((s,e)=>s+e.hours,0);
+        const earned = hours * worker.rate;
+        const advanceSum = advances.reduce((s,a)=>s+a.amount,0);
 
-    const dayNames = ["Pn","Wt","Śr","Cz","Pt","Sb","Nd"];
-
-    dayNames.forEach(d=>{
-        const el = document.createElement("div");
-        el.className = "day-name";
-        el.innerText = d;
-        daysRow.appendChild(el);
+        html += `
+        <div style="margin-bottom:15px;">
+            <b>${worker.name}</b><br>
+            Godziny: ${hours}<br>
+            Zarobione: ${earned.toFixed(2)} zł<br>
+            Zaliczki: ${advanceSum.toFixed(2)} zł<br>
+            Do wypłaty: ${(earned-advanceSum).toFixed(2)} zł
+        </div>
+        `;
     });
 
-    const firstDay = new Date(year, month, 1);
-    const startDay = (firstDay.getDay() + 6) % 7;
-    const daysInMonth = new Date(year, month+1, 0).getDate();
-
-    for(let i=0;i<startDay;i++){
-        calendar.appendChild(document.createElement("div"));
-    }
-
-    for(let d=1; d<=daysInMonth; d++){
-
-        const date = new Date(year, month, d);
-        const dateStr = formatLocal(date);
-
-        const el = document.createElement("div");
-        el.className = "day";
-
-        const weekday = date.getDay();
-
-        if(weekday === 0 || weekday === 6){
-            el.classList.add("weekend");
-        }
-
-        if(dateStr === selectedDay){
-            el.classList.add("active");
-        }
-
-        const hasHours = db.entries.some(e => e.date === dateStr);
-
-        el.innerHTML = `
-            <div class="day-number">${d}</div>
-            ${hasHours ? '<div class="dot"></div>' : ''}
-        `;
-
-        el.onclick = ()=>{
-            selectedDay = dateStr;
-            renderCalendar();
-        };
-
-        calendar.appendChild(el);
-    }
+    document.getElementById("companyReport").innerHTML += html;
 }
 
-// ===== STEROWANIE MIESIĄCEM =====
+// ===== HISTORIA ZALICZEK =====
 
-document.addEventListener("DOMContentLoaded", () => {
+function renderAdvanceHistory(){
 
-    const prev = document.getElementById("prevMonth");
-    const next = document.getElementById("nextMonth");
+    let html = `<h2>💵 Historia zaliczek</h2>`;
 
-    if(prev) prev.onclick = ()=>{
-        calendarDate.setMonth(calendarDate.getMonth() - 1);
-        renderCalendar();
-    };
+    db.advances.forEach(a=>{
+        const worker = db.workers.find(w=>w.id===a.worker);
 
-    if(next) next.onclick = ()=>{
-        calendarDate.setMonth(calendarDate.getMonth() + 1);
-        renderCalendar();
-    };
+        html += `
+            <div class="row">
+                <div>
+                    <b>${worker.name}</b><br>
+                    ${a.date}
+                </div>
+                <div>${a.amount} zł</div>
+            </div>
+        `;
+    });
 
-});
+    document.getElementById("advancesList").innerHTML = html;
+}
 
-// ===== AUTO ODŚWIEŻANIE =====
+// ===== EDYCJA PRACOWNIKA =====
 
-const originalAddHours = window.addHours;
-window.addHours = function(){
-    originalAddHours();
-    renderCalendar();
-    renderWeeklyReport();
-    renderStats();
-};
+function editWorker(id){
+    const worker = db.workers.find(w=>w.id===id);
+    const name = prompt("Imię:", worker.name);
+    const rate = prompt("Stawka:", worker.rate);
+
+    if(!name || !rate) return;
+
+    worker.name = name;
+    worker.rate = parseFloat(rate);
+
+    saveDB();
+    renderAll();
+}
+
+function deleteWorker(id){
+    if(!confirm("Usunąć pracownika?")) return;
+
+    db.workers = db.workers.filter(w=>w.id!==id);
+    db.entries = db.entries.filter(e=>e.worker!==id);
+    db.advances = db.advances.filter(a=>a.worker!==id);
+
+    saveDB();
+    renderAll();
+}
+
+// ===== EDYCJA PROJEKTU =====
+
+function editProject(id){
+    const project = db.projects.find(p=>p.id===id);
+    const name = prompt("Nazwa projektu:", project.name);
+
+    if(!name) return;
+
+    project.name = name;
+    saveDB();
+    renderAll();
+}
+
+function deleteProject(id){
+    if(!confirm("Usunąć projekt?")) return;
+
+    db.projects = db.projects.filter(p=>p.id!==id);
+    db.entries = db.entries.filter(e=>e.project!==id);
+
+    saveDB();
+    renderAll();
+}
