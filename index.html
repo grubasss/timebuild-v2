@@ -122,11 +122,13 @@ function getTodayLocal(){
 <script src="charts.js?v=4"></script>
 <script src="reports-fixed.js?v=4"></script>
 
-<!-- 🔥 NOWE: KALENDARZ EVENTY -->
+<!-- 🔥 NOWY: BACKUP -->
+<script src="backup.js"></script>
+
+<!-- 🔥 KALENDARZ EVENTY -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    // miesiące
     document.getElementById("prevMonth")?.addEventListener("click", () => {
         calendarDate.setMonth(calendarDate.getMonth() - 1);
         renderCalendar();
@@ -137,7 +139,6 @@ document.addEventListener("DOMContentLoaded", () => {
         renderCalendar();
     });
 
-    // 🔥 wykresy po pełnym renderze
     setTimeout(() => {
         if (typeof renderCharts === "function") {
             renderCharts();
