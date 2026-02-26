@@ -1,43 +1,20 @@
-function waitForDB(callback){
-
-    let tries = 0;
-
-    const interval = setInterval(()=>{
-
-        if(window.db && db.workers){
-            clearInterval(interval);
-            callback();
-        }
-
-        tries++;
-        if(tries > 20){
-            clearInterval(interval);
-            alert("DB nie została załadowana");
-        }
-
-    }, 200);
-}
-
 // ===== EXPORT =====
 
 function exportData(){
 
-    waitForDB(()=>{
+    const raw = localStorage.getItem("erpDB");
 
-        if(!db || !db.workers || db.workers.length === 0){
-            alert("Brak danych do backupu");
-            return;
-        }
+    if(!raw){
+        alert("Brak danych do backupu");
+        return;
+    }
 
-        const dataStr = JSON.stringify(db, null, 2);
-        const blob = new Blob([dataStr], { type: "application/json" });
+    const blob = new Blob([raw], { type: "application/json" });
 
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "ERP_backup.json";
-        a.click();
-
-    });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "ERP_backup.json";
+    a.click();
 }
 
 // ===== IMPORT =====
