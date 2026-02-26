@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House Concept ERP COMPLETE+</title>
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css?v=2">
+  <!-- USUNIĘTY manifest (powodował 404) -->
+  <link rel="stylesheet" href="style.css?v=3">
   <meta name="theme-color" content="#5fa68a">
 
   <!-- Chart.js -->
@@ -135,7 +135,6 @@ function getTodayLocal(){
 }
 
 function getWeekRangeSafe(dateStr){
-
     const date = new Date(dateStr + "T12:00:00");
     const day = date.getDay();
     const diff = (day === 0 ? -6 : 1) - day;
@@ -155,11 +154,11 @@ function getWeekRangeSafe(dateStr){
 
 <!-- KOLEJNOŚĆ SKRYPTÓW MA ZNACZENIE -->
 
-<script src="storage.js"></script>
-<script src="data-init.js"></script>
-<script src="app.js?v=4"></script>
-<script src="charts.js"></script>
-<script src="reports-fixed.js"></script>
+<script src="storage.js?v=3"></script>
+<script src="data-init.js?v=3"></script>
+<script src="app.js?v=5"></script>
+<script src="charts.js?v=3"></script>
+<script src="reports-fixed.js?v=3"></script>
 
 </body>
 </html>
