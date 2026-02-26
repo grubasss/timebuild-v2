@@ -3,19 +3,26 @@ let moneyChartInstance = null;
 
 function renderCharts() {
 
-    const ctxHours = document.getElementById("hoursChart").getContext("2d");
-    const ctxMoney = document.getElementById("moneyChart").getContext("2d");
+    if (!window.db) return;
+
+    const hoursCanvas = document.getElementById("hoursChart");
+    const moneyCanvas = document.getElementById("moneyChart");
+
+    if (!hoursCanvas || !moneyCanvas) return;
+
+    const ctxHours = hoursCanvas.getContext("2d");
+    const ctxMoney = moneyCanvas.getContext("2d");
 
     const workerNames = db.workers.map(w => w.name);
 
     const hoursData = db.workers.map(w =>
         db.entries
             .filter(e => e.worker === w.id)
-            .reduce((sum, e) => sum + e.hours, 0)
+            .reduce((sum, e) => sum + (parseFloat(e.hours) || 0), 0)
     );
 
     const moneyData = db.workers.map((w, index) =>
-        hoursData[index] * w.rate
+        hoursData[index] * (parseFloat(w.rate) || 0)
     );
 
     if (hoursChartInstance) hoursChartInstance.destroy();
@@ -32,7 +39,7 @@ function renderCharts() {
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: true } }
+            maintainAspectRatio: false
         }
     });
 
@@ -47,11 +54,17 @@ function renderCharts() {
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: true } }
+            maintainAspectRatio: false
         }
     });
 }
 
 function initCharts() {
-    renderCharts();
+    setTimeout(() => {
+        renderCharts();
+    }, 200);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    initCharts();
+});
