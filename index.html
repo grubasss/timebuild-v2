@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House Concept ERP COMPLETE+</title>
 
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
   <meta name="theme-color" content="#5fa68a">
 
   <!-- Chart.js -->
@@ -113,19 +113,37 @@ function formatLocal(d){
 function getTodayLocal(){
     return formatLocal(new Date());
 }
+
+function getWeekRangeSafe(dateStr){
+    const date = new Date(dateStr + "T12:00:00");
+    const day = date.getDay();
+    const diff = (day === 0 ? -6 : 1) - day;
+
+    const monday = new Date(date);
+    monday.setDate(date.getDate() + diff);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    return {
+        start: formatLocal(monday),
+        end: formatLocal(sunday)
+    };
+}
 </script>
 
-<!-- SKRYPTY -->
-<script src="storage.js?v=4"></script>
-<script src="data-init.js?v=4"></script>
-<script src="app.js?v=6"></script>
-<script src="charts.js?v=4"></script>
-<script src="reports-fixed.js?v=4"></script>
+<!-- 🔑 KOLEJNOŚĆ MA KLUCZOWE ZNACZENIE -->
 
-<!-- 🔥 NOWY: BACKUP -->
-<script src="backup.js"></script>
+<script src="storage.js?v=5"></script>
+<script src="data-init.js?v=5"></script>
+<script src="app.js?v=7"></script>
+<script src="charts.js?v=5"></script>
+<script src="reports-fixed.js?v=5"></script>
 
-<!-- 🔥 KALENDARZ EVENTY -->
+<!-- 🔥 BACKUP NA KOŃCU -->
+<script src="backup.js?v=1"></script>
+
+<!-- KALENDARZ -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
