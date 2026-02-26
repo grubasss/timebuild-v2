@@ -7,12 +7,14 @@ document.addEventListener("DOMContentLoaded", () => {
 function init() {
     loadDB();
     renderAll();
+    setTimeout(renderCalendar, 300);
 }
 
 function renderAll() {
     renderStats();
     renderWeeklyReport();
     renderGlobalReport();
+    renderCalendar();
 }
 
 // ===== STATYSTYKI =====
@@ -33,29 +35,12 @@ function renderStats() {
     `;
 }
 
-// ===== TYGODNIOWY =====
-
-function getWeekRange(dateStr) {
-    const date = new Date(dateStr);
-    const day = date.getDay();
-    const diff = (day === 0 ? -6 : 1) - day;
-
-    const monday = new Date(date);
-    monday.setDate(date.getDate() + diff);
-
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-
-    return {
-        start: monday.toISOString().slice(0,10),
-        end: sunday.toISOString().slice(0,10)
-    };
-}
+// ===== TYGODNIOWY (LOKALNY - POPRAWIONY) =====
 
 function renderWeeklyReport() {
 
-    const today = new Date().toISOString().slice(0,10);
-    const week = getWeekRange(today);
+    const today = getTodayLocal();
+    const week = getWeekRangeSafe(today);
 
     let html = `<h2>📅 Raport tygodniowy (${week.start} – ${week.end})</h2>`;
 
@@ -155,3 +140,109 @@ function renderGlobalReport() {
 
     document.getElementById("companyReport").innerHTML = html;
 }
+
+// ===== KALENDARZ ERP =====
+
+let calendarDate = new Date();
+let selectedDay = formatLocal(new Date());
+
+function renderCalendar(){
+
+    const calendar = document.getElementById("calendar");
+    const label = document.getElementById("monthLabel");
+    const daysRow = document.getElementById("calendarDays");
+
+    if(!calendar || !label || !daysRow) return;
+
+    calendar.innerHTML = "";
+    daysRow.innerHTML = "";
+
+    const month = calendarDate.getMonth();
+    const year = calendarDate.getFullYear();
+
+    const monthNames = [
+        "styczeń","luty","marzec","kwiecień","maj","czerwiec",
+        "lipiec","sierpień","wrzesień","październik","listopad","grudzień"
+    ];
+
+    label.innerText = monthNames[month] + " " + year;
+
+    const dayNames = ["Pn","Wt","Śr","Cz","Pt","Sb","Nd"];
+
+    dayNames.forEach(d=>{
+        const el = document.createElement("div");
+        el.className = "day-name";
+        el.innerText = d;
+        daysRow.appendChild(el);
+    });
+
+    const firstDay = new Date(year, month, 1);
+    const startDay = (firstDay.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+
+    for(let i=0;i<startDay;i++){
+        calendar.appendChild(document.createElement("div"));
+    }
+
+    for(let d=1; d<=daysInMonth; d++){
+
+        const date = new Date(year, month, d);
+        const dateStr = formatLocal(date);
+
+        const el = document.createElement("div");
+        el.className = "day";
+
+        const weekday = date.getDay();
+
+        if(weekday === 0 || weekday === 6){
+            el.classList.add("weekend");
+        }
+
+        if(dateStr === selectedDay){
+            el.classList.add("active");
+        }
+
+        const hasHours = db.entries.some(e => e.date === dateStr);
+
+        el.innerHTML = `
+            <div class="day-number">${d}</div>
+            ${hasHours ? '<div class="dot"></div>' : ''}
+        `;
+
+        el.onclick = ()=>{
+            selectedDay = dateStr;
+            renderCalendar();
+        };
+
+        calendar.appendChild(el);
+    }
+}
+
+// ===== STEROWANIE MIESIĄCEM =====
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const prev = document.getElementById("prevMonth");
+    const next = document.getElementById("nextMonth");
+
+    if(prev) prev.onclick = ()=>{
+        calendarDate.setMonth(calendarDate.getMonth() - 1);
+        renderCalendar();
+    };
+
+    if(next) next.onclick = ()=>{
+        calendarDate.setMonth(calendarDate.getMonth() + 1);
+        renderCalendar();
+    };
+
+});
+
+// ===== AUTO ODŚWIEŻANIE =====
+
+const originalAddHours = window.addHours;
+window.addHours = function(){
+    originalAddHours();
+    renderCalendar();
+    renderWeeklyReport();
+    renderStats();
+};
