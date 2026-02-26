@@ -9,6 +9,13 @@ let selectedDay = formatLocal(new Date());
 
 function init() {
     loadDB();
+
+    // 🔑 USTAW input daty na wybrany dzień
+    const dateInput = document.getElementById("hoursDate");
+    if(dateInput){
+        dateInput.value = selectedDay;
+    }
+
     renderAll();
 }
 
@@ -25,16 +32,15 @@ function renderAll() {
     if (typeof updateCharts === "function") updateCharts();
 }
 
-// ===== DODAWANIE GODZIN (NAPRAWIONE) =====
+// ===== DODAWANIE GODZIN =====
 
 function addHours(){
 
     const worker = document.getElementById("hoursWorker")?.value;
     const project = document.getElementById("hoursProject")?.value;
-    const dateInput = document.getElementById("hoursDate")?.value;
     const hours = parseFloat(document.getElementById("hoursValue")?.value);
 
-    const date = dateInput || selectedDay;
+    const date = selectedDay;
 
     if(!worker || !project || !date || !hours){
         alert("Uzupełnij dane");
@@ -176,6 +182,8 @@ function renderCalendar(){
     const calendar = document.getElementById("calendar");
     const label = document.getElementById("monthLabel");
     const daysRow = document.getElementById("calendarDays");
+    const dateInput = document.getElementById("hoursDate");
+
     if(!calendar || !label || !daysRow) return;
 
     calendar.innerHTML = "";
@@ -231,6 +239,12 @@ function renderCalendar(){
 
         el.onclick = ()=>{
             selectedDay = dateStr;
+
+            // 🔑 synchronizacja inputa
+            if(dateInput){
+                dateInput.value = dateStr;
+            }
+
             renderCalendar();
         };
 
