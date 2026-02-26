@@ -1,12 +1,3 @@
-// ===== SYSTEM FIX (żeby nic się nie wywalało) =====
-
-function formatLocal(d){
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const day = String(d.getDate()).padStart(2,'0');
-    return `${y}-${m}-${day}`;
-}
-
 // ===== INIT =====
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -17,12 +8,7 @@ let calendarDate = new Date();
 let selectedDay = formatLocal(new Date());
 
 function init() {
-
-    if(!window.db){
-        console.warn("DB jeszcze nie załadowane");
-        setTimeout(init, 300);
-        return;
-    }
+    loadDB();
 
     const dateInput = document.getElementById("hoursDate");
     if(dateInput){
@@ -42,10 +28,7 @@ function renderAll() {
     renderEntries();
     renderAdvances();
     renderCalendar();
-
-    if (typeof renderCharts === "function") {
-        renderCharts();
-    }
+    if (typeof updateCharts === "function") updateCharts();
 }
 
 // ===== DODAWANIE GODZIN =====
@@ -58,7 +41,7 @@ function addHours(){
 
     const date = selectedDay;
 
-    if(!worker || !project || !hours){
+    if(!worker || !project || !date || !hours){
         alert("Uzupełnij dane");
         return;
     }
@@ -72,12 +55,18 @@ function addHours(){
     });
 
     saveDB();
-    renderAll();
+
+    renderEntries();
+    renderStats();
+    renderCalendar();
+
+    if (typeof updateCharts === "function") updateCharts();
 }
 
 // ===== STATYSTYKI =====
 
 function renderStats(){
+    if(!db) return;
 
     const stats = document.getElementById("stats");
     if(!stats) return;
@@ -102,11 +91,17 @@ function renderWorkers(){
     const list = document.getElementById("workersList");
     if(!list) return;
 
-    list.innerHTML = db.workers.map(w => `
+    let html = "";
+    db.workers.forEach(worker => {
+        html += `
         <div class="row">
-            <b>${w.name}</b> (${w.rate} zł/h)
+            <div>
+                <b>${worker.name}</b> (${worker.rate} zł/h)
+            </div>
         </div>
-    `).join("");
+        `;
+    });
+    list.innerHTML = html;
 }
 
 // ===== PROJECTS =====
@@ -115,28 +110,31 @@ function renderProjects(){
     const list = document.getElementById("projectsList");
     if(!list) return;
 
-    list.innerHTML = db.projects.map(p => `
-        <div class="row">${p.name}</div>
-    `).join("");
+    let html = "";
+    db.projects.forEach(p => {
+        html += `<div class="row">${p.name}</div>`;
+    });
+    list.innerHTML = html;
 }
 
-// ===== SELECTORY =====
+// ===== SELECTORS =====
 
 function renderSelectors(){
-
     const workerSel = document.getElementById("hoursWorker");
     const projectSel = document.getElementById("hoursProject");
 
     if(workerSel){
-        workerSel.innerHTML = db.workers.map(w =>
-            `<option value="${w.id}">${w.name}</option>`
-        ).join("");
+        workerSel.innerHTML = "";
+        db.workers.forEach(w=>{
+            workerSel.innerHTML += `<option value="${w.id}">${w.name}</option>`;
+        });
     }
 
     if(projectSel){
-        projectSel.innerHTML = db.projects.map(p =>
-            `<option value="${p.id}">${p.name}</option>`
-        ).join("");
+        projectSel.innerHTML = "";
+        db.projects.forEach(p=>{
+            projectSel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        });
     }
 }
 
@@ -146,17 +144,17 @@ function renderEntries(){
     const list = document.getElementById("entriesList");
     if(!list) return;
 
-    list.innerHTML = db.entries.map(e => {
-
+    let html = "";
+    db.entries.forEach(e=>{
         const worker = db.workers.find(w=>w.id===e.worker);
         const project = db.projects.find(p=>p.id===e.project);
 
-        return `
+        html += `
         <div class="row">
             ${worker?.name||""} – ${project?.name||""} – ${e.hours}h (${e.date})
-        </div>
-        `;
-    }).join("");
+        </div>`;
+    });
+    list.innerHTML = html;
 }
 
 // ===== ADVANCES =====
@@ -165,16 +163,15 @@ function renderAdvances(){
     const list = document.getElementById("advancesList");
     if(!list) return;
 
-    list.innerHTML = db.advances.map(a => {
-
+    let html = "";
+    db.advances.forEach(a=>{
         const worker = db.workers.find(w=>w.id===a.worker);
-
-        return `
+        html += `
         <div class="row">
             ${worker?.name||""} – ${a.amount} zł (${a.date})
-        </div>
-        `;
-    }).join("");
+        </div>`;
+    });
+    list.innerHTML = html;
 }
 
 // ===== KALENDARZ =====
@@ -200,7 +197,8 @@ function renderCalendar(){
     ];
     label.innerText = monthNames[month] + " " + year;
 
-    ["Pn","Wt","Śr","Cz","Pt","Sb","Nd"].forEach(d=>{
+    const dayNames = ["Pn","Wt","Śr","Cz","Pt","Sb","Nd"];
+    dayNames.forEach(d=>{
         const el = document.createElement("div");
         el.className = "day-name";
         el.innerText = d;
@@ -240,9 +238,11 @@ function renderCalendar(){
 
         el.onclick = ()=>{
             selectedDay = dateStr;
+
             if(dateInput){
                 dateInput.value = dateStr;
             }
+
             renderCalendar();
         };
 
