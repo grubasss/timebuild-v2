@@ -57,6 +57,18 @@ border:none;
 font-weight:700;
 }
 
+/* ===== KALENDARZ ===== */
+
+.calendar-days{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:6px;
+margin-top:10px;
+text-align:center;
+font-weight:600;
+opacity:.6;
+}
+
 #calendar{
 display:grid;
 grid-template-columns:repeat(7,1fr);
@@ -71,10 +83,26 @@ border-radius:14px;
 text-align:center;
 font-weight:600;
 cursor:pointer;
+position:relative;
+transition:.15s;
 }
 
-.day.weekend{background:var(--weekend)}
-.day.today{outline:3px solid #22c55e}
+.day:hover{
+transform:scale(1.05);
+}
+
+.day.weekend{
+background:var(--weekend);
+}
+
+.day.active{
+outline:3px solid #22c55e;
+background:#e7f6ef;
+}
+
+.day-number{
+font-weight:600;
+}
 
 .dot{
 width:6px;
