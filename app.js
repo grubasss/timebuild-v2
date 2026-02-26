@@ -21,11 +21,40 @@ function renderAll() {
     renderSelectors();
     renderEntries();
     renderAdvances();
-    renderWeeklyReport();
-    renderGlobalReport();
-    renderMonthlyReport();
-    renderAdvanceHistory();
     renderCalendar();
+    if (typeof updateCharts === "function") updateCharts();
+}
+
+// ===== DODAWANIE GODZIN (NAPRAWIONE) =====
+
+function addHours(){
+
+    const worker = document.getElementById("hoursWorker")?.value;
+    const project = document.getElementById("hoursProject")?.value;
+    const dateInput = document.getElementById("hoursDate")?.value;
+    const hours = parseFloat(document.getElementById("hoursValue")?.value);
+
+    const date = dateInput || selectedDay;
+
+    if(!worker || !project || !date || !hours){
+        alert("Uzupełnij dane");
+        return;
+    }
+
+    db.entries.push({
+        id: Date.now(),
+        worker,
+        project,
+        date,
+        hours
+    });
+
+    saveDB();
+
+    renderEntries();
+    renderStats();
+    renderCalendar();
+
     if (typeof updateCharts === "function") updateCharts();
 }
 
@@ -37,11 +66,11 @@ function renderStats(){
     const stats = document.getElementById("stats");
     if(!stats) return;
 
-    let totalHours = db.entries.reduce((s,e)=>s + (e.hours||0), 0);
     let totalEarned = db.entries.reduce((s,e)=>{
         const worker = db.workers.find(w=>w.id===e.worker);
         return s + ((e.hours||0) * (worker?.rate||0));
     },0);
+
     let totalAdvances = db.advances.reduce((s,a)=>s + (a.amount||0), 0);
 
     stats.innerHTML = `
@@ -51,7 +80,7 @@ function renderStats(){
     `;
 }
 
-// ===== WORKERS (z checkboxami) =====
+// ===== WORKERS =====
 
 function renderWorkers(){
     const list = document.getElementById("workersList");
@@ -62,12 +91,7 @@ function renderWorkers(){
         html += `
         <div class="row">
             <div>
-                <input type="checkbox" class="worker-check" value="${worker.id}">
                 <b>${worker.name}</b> (${worker.rate} zł/h)
-            </div>
-            <div>
-                <button onclick="editWorker('${worker.id}')">Edytuj</button>
-                <button onclick="deleteWorker('${worker.id}')">Usuń</button>
             </div>
         </div>
         `;
@@ -88,7 +112,7 @@ function renderProjects(){
     list.innerHTML = html;
 }
 
-// ===== SELECTORS (kluczowe do wyboru pracownika/projektu) =====
+// ===== SELECTORS =====
 
 function renderSelectors(){
     const workerSel = document.getElementById("hoursWorker");
@@ -109,7 +133,7 @@ function renderSelectors(){
     }
 }
 
-// ===== ENTRIES (lista godzin) =====
+// ===== ENTRIES =====
 
 function renderEntries(){
     const list = document.getElementById("entriesList");
@@ -145,56 +169,10 @@ function renderAdvances(){
     list.innerHTML = html;
 }
 
-// ===== MASOWE GODZINY =====
-
-function addHoursAll(){
-    const project = document.getElementById("hoursProject")?.value;
-    const date = document.getElementById("hoursDate")?.value;
-    const hours = parseFloat(document.getElementById("hoursValue")?.value);
-
-    if(!project || !date || !hours) return;
-
-    db.workers.forEach(w=>{
-        db.entries.push({
-            id: Date.now() + Math.random(),
-            worker: w.id,
-            project,
-            date,
-            hours
-        });
-    });
-
-    saveDB();
-    renderAll();
-}
-
-function addHoursSelected(){
-    const project = document.getElementById("hoursProject")?.value;
-    const date = document.getElementById("hoursDate")?.value;
-    const hours = parseFloat(document.getElementById("hoursValue")?.value);
-
-    const selected = Array.from(document.querySelectorAll(".worker-check:checked"))
-        .map(el => el.value);
-
-    if(!project || !date || !hours || !selected.length) return;
-
-    selected.forEach(id=>{
-        db.entries.push({
-            id: Date.now() + Math.random(),
-            worker: id,
-            project,
-            date,
-            hours
-        });
-    });
-
-    saveDB();
-    renderAll();
-}
-
 // ===== KALENDARZ =====
 
 function renderCalendar(){
+
     const calendar = document.getElementById("calendar");
     const label = document.getElementById("monthLabel");
     const daysRow = document.getElementById("calendarDays");
@@ -229,6 +207,7 @@ function renderCalendar(){
     }
 
     for(let d=1; d<=daysInMonth; d++){
+
         const date = new Date(year, month, d);
         const dateStr = formatLocal(date);
 
@@ -238,11 +217,13 @@ function renderCalendar(){
         if(date.getDay() === 0 || date.getDay() === 6){
             el.classList.add("weekend");
         }
+
         if(dateStr === selectedDay){
             el.classList.add("active");
         }
 
         const hasHours = db.entries.some(e => e.date === dateStr);
+
         el.innerHTML = `
             <div class="day-number">${d}</div>
             ${hasHours ? '<div class="dot"></div>' : ''}
@@ -256,10 +237,3 @@ function renderCalendar(){
         calendar.appendChild(el);
     }
 }
-
-// ===== PUSTE RAPORTY (żeby JS się nie zatrzymywał) =====
-
-function renderWeeklyReport(){}
-function renderGlobalReport(){}
-function renderMonthlyReport(){}
-function renderAdvanceHistory(){}
