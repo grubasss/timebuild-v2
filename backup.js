@@ -1,22 +1,46 @@
-// ===== BACKUP EXPORT =====
+function waitForDB(callback){
+
+    let tries = 0;
+
+    const interval = setInterval(()=>{
+
+        if(window.db && db.workers){
+            clearInterval(interval);
+            callback();
+        }
+
+        tries++;
+        if(tries > 20){
+            clearInterval(interval);
+            alert("DB nie została załadowana");
+        }
+
+    }, 200);
+}
+
+// ===== EXPORT =====
 
 function exportData(){
 
-    if(!window.db){
-        alert("Brak danych");
-        return;
-    }
+    waitForDB(()=>{
 
-    const dataStr = JSON.stringify(db, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
+        if(!db || !db.workers || db.workers.length === 0){
+            alert("Brak danych do backupu");
+            return;
+        }
 
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "ERP_backup.json";
-    a.click();
+        const dataStr = JSON.stringify(db, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "ERP_backup.json";
+        a.click();
+
+    });
 }
 
-// ===== BACKUP IMPORT =====
+// ===== IMPORT =====
 
 function importData(event){
 
@@ -26,26 +50,16 @@ function importData(event){
     const reader = new FileReader();
 
     reader.onload = function(e){
-
         try{
             const imported = JSON.parse(e.target.result);
 
-            if(!imported.workers || !imported.projects){
-                alert("Niepoprawny plik backup");
-                return;
-            }
+            localStorage.setItem("erpDB", JSON.stringify(imported));
 
-            db = imported;
-            saveDB();
+            alert("Backup wczytany!");
+            location.reload();
 
-            alert("Backup przywrócony ✔");
-
-            if(typeof renderAll === "function"){
-                renderAll();
-            }
-
-        }catch(err){
-            alert("Błąd odczytu backupu");
+        }catch{
+            alert("Niepoprawny plik backupu");
         }
     };
 
