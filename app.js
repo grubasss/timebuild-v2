@@ -128,25 +128,22 @@ function renderStats(){
     `;
 }
 
-// ===== WORKERS =====
-
 function renderWorkers(){
     const list = document.getElementById("workersList");
     if(!list) return;
 
-    let html = "";
-    db.workers.forEach(worker => {
-        html += `
+    list.innerHTML = db.workers.map(w => `
         <div class="row">
             <div>
-                <b>${worker.name}</b> (${worker.rate} zł/h)
+                <b>${w.name}</b> (${w.rate} zł/h)
+            </div>
+            <div>
+                <button onclick="editWorker(${w.id})">Edytuj</button>
+                <button onclick="deleteWorker(${w.id})">Usuń</button>
             </div>
         </div>
-        `;
-    });
-    list.innerHTML = html;
+    `).join("");
 }
-
 // ===== PROJECTS =====
 
 function renderProjects(){
@@ -313,4 +310,63 @@ function renderCalendar(){
 
         calendar.appendChild(el);
     }
+}
+// ===== WORKERS FULL CONTROL =====
+
+function addWorker(){
+
+    const name = document.getElementById("workerName")?.value.trim();
+    const rate = parseFloat(document.getElementById("workerRate")?.value);
+
+    if(!name || !rate){
+        alert("Uzupełnij dane pracownika");
+        return;
+    }
+
+    db.workers.push({
+        id: Date.now(),
+        name,
+        rate
+    });
+
+    saveDB?.(); // jeśli istnieje
+    renderAll();
+}
+
+function editWorker(id){
+
+    const worker = db.workers.find(w=>w.id==id);
+    if(!worker) return;
+
+    const newRate = prompt("Nowa stawka:", worker.rate);
+    if(newRate===null) return;
+
+    const parsed = parseFloat(newRate);
+    if(isNaN(parsed)){
+        alert("Nieprawidłowa wartość");
+        return;
+    }
+
+    worker.rate = parsed;
+
+    saveDB?.();
+    renderAll();
+}
+
+function deleteWorker(id){
+
+    const hasEntries = db.entries.some(e=>e.worker==id);
+    const hasAdvances = db.advances.some(a=>a.worker==id);
+
+    if(hasEntries || hasAdvances){
+        alert("Nie można usunąć — ma przypisane godziny lub zaliczki.");
+        return;
+    }
+
+    if(!confirm("Usunąć pracownika?")) return;
+
+    db.workers = db.workers.filter(w=>w.id!=id);
+
+    saveDB?.();
+    renderAll();
 }
