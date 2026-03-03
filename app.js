@@ -1,6 +1,25 @@
-// ===== INIT =====
+// ===== FIREBASE SYNC =====
+function workersCollection() {
+  return cloudDB.collection("workers");
+}// ===== INIT =====
 
 document.addEventListener("DOMContentLoaded", () => {
+
+    // 🔥 NASŁUCH Z FIRESTORE (synchronizacja między urządzeniami)
+    workersCollection().onSnapshot((snapshot) => {
+        const workersFromCloud = [];
+
+        snapshot.forEach(doc => {
+            workersFromCloud.push(doc.data());
+        });
+
+        if (workersFromCloud.length > 0) {
+            workers = workersFromCloud;
+            saveWorkers();
+            renderAll();
+        }
+    });
+
     init();
 });
 
