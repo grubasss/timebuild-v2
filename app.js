@@ -194,7 +194,39 @@ function renderWorkers(){
         </div>
     `).join("");
 }
+// ===== KALENDARZ =====
 
+function renderCalendar() {
+    const container = document.getElementById("calendarContainer");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+        const date = new Date(year, month, day);
+        const div = document.createElement("div");
+        div.className = "calendar-day";
+        div.textContent = day;
+
+        if (formatLocal(date) === selectedDay) {
+            div.classList.add("active-day");
+        }
+
+        div.onclick = () => {
+            selectedDay = formatLocal(date);
+            renderCalendar();
+            renderAll();
+        };
+
+        container.appendChild(div);
+    }
+}
 // ======================================================
 // RESZTA TWOJEGO KODU (projekty, selektory, entries,
 // advances, kalendarz, addWorker, editWorker, deleteWorker)
