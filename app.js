@@ -64,7 +64,7 @@ function saveDB() {
 function renderAll() {
     renderStats();
     renderWorkers();
-    renderProjects();
+   // renderProjects();
     renderSelectors();
     renderEntries();
     renderAdvances();
