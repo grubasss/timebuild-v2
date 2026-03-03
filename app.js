@@ -195,13 +195,14 @@ function renderEntries(){
 
     let html = "";
     db.entries.forEach(e=>{
-        const worker = db.workers.find(w=>w.id===e.worker);
-        const project = db.projects.find(p=>p.id===e.project);
+        const worker = db.workers.find(w=>w.id==e.worker);
+        const project = db.projects.find(p=>p.id==e.project);
 
-        html += `
-        <div class="row">
-            ${worker?.name||""} – ${project?.name||""} – ${e.hours}h (${e.date})
-        </div>`;
+       html += `
+<div class="row">
+${worker ? worker.name : "USUNIĘTY"} – ${project?.name||""} – ${e.hours}h (${e.date})
+</div>
+`;
     });
     list.innerHTML = html;
 }
