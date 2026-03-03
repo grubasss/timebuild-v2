@@ -197,7 +197,7 @@ function renderWorkers(){
 // ===== KALENDARZ =====
 
 function renderCalendar() {
-    const container = document.getElementById("calendarContainer");
+    const container = document.getElementById("calendar");
     if (!container) return;
 
     container.innerHTML = "";
