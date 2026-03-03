@@ -164,6 +164,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 800);
 });
 </script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyB2-KFDIH4CieEj42RZjugm43s3gZUbHJQ",
+    authDomain: "house-concept-erp.firebaseapp.com",
+    projectId: "house-concept-erp",
+    storageBucket: "house-concept-erp.firebasestorage.app",
+    messagingSenderId: "216763502411",
+    appId: "1:216763502411:web:2cacf80fdb0a37701462ce",
+    measurementId: "G-R4B03MEZDC"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const cloudDB = firebase.firestore();
+</script>
 </body>
 </html>
