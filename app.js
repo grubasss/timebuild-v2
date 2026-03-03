@@ -65,7 +65,7 @@ function renderAll() {
     renderStats();
     renderWorkers();
    // renderProjects();
-    renderSelectors();
+   // renderSelectors();
     renderEntries();
     renderAdvances();
     renderCalendar();
