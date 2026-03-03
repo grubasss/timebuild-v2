@@ -101,3 +101,35 @@ function deleteEntry(id) {
     saveDB();
     renderAll();
 }
+// ===== ZALICZKI =====
+
+function renderAdvances() {
+    const container = document.getElementById("advancesList");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    db.advances.forEach(a => {
+        const worker = db.workers.find(w => w.id === a.worker);
+
+        const div = document.createElement("div");
+        div.className = "advance-row";
+        div.innerHTML = `
+            <strong>${worker?.name || "?"}</strong>
+            - ${a.amount} zł
+            (${a.date})
+            <button onclick="deleteAdvance('${a.id}')">Usuń</button>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+function deleteAdvance(id) {
+    if (!confirm("Usunąć zaliczkę?")) return;
+
+    db.advances = db.advances.filter(a => a.id !== id);
+
+    saveDB();
+    renderAll();
+}
