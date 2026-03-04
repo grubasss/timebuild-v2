@@ -3,6 +3,8 @@ let selectedDay = formatLocal(new Date());
 
 document.addEventListener("DOMContentLoaded", () => {
 
+if(typeof db === "undefined") return;
+
 renderAll();
 
 document.getElementById("prevMonth")?.addEventListener("click", () => {
@@ -18,6 +20,8 @@ renderCalendar();
 });
 
 function renderAll(){
+
+if(!db) return;
 
 renderWorkers();
 renderProjects();
@@ -60,27 +64,21 @@ const projects = document.getElementById("hoursProject");
 const advWorker = document.getElementById("advanceWorker");
 
 if(workers){
-
 workers.innerHTML = db.workers.map(w =>
 `<option value="${w.id}">${w.name}</option>`
 ).join("");
-
 }
 
 if(projects){
-
 projects.innerHTML = db.projects.map(p =>
 `<option value="${p.id}">${p.name}</option>`
 ).join("");
-
 }
 
 if(advWorker){
-
 advWorker.innerHTML = db.workers.map(w =>
 `<option value="${w.id}">${w.name}</option>`
 ).join("");
-
 }
 
 }
@@ -90,6 +88,8 @@ function addHours(){
 const worker = document.getElementById("hoursWorker").value;
 const project = document.getElementById("hoursProject").value;
 const hours = parseFloat(document.getElementById("hoursValue").value);
+
+if(!hours) return;
 
 db.entries.push({
 id: Date.now(),
@@ -129,6 +129,8 @@ function addAdvance(){
 const worker = document.getElementById("advanceWorker").value;
 const amount = parseFloat(document.getElementById("advanceValue").value);
 const date = document.getElementById("advanceDate").value;
+
+if(!amount) return;
 
 db.advances.push({
 id: Date.now(),
@@ -170,13 +172,13 @@ el.innerHTML = db.workers.map(w => {
 
 const hours = db.entries
 .filter(e=>e.worker==w.id)
-.reduce((s,e)=>s+e.hours,0);
+.reduce((s,e)=>s+Number(e.hours),0);
 
 const earned = hours * w.rate;
 
 const advances = db.advances
 .filter(a=>a.worker==w.id)
-.reduce((s,a)=>s+a.amount,0);
+.reduce((s,a)=>s+Number(a.amount),0);
 
 const toPay = earned - advances;
 
@@ -208,58 +210,4 @@ const firstDay = new Date(year, month, 1);
 const startDay = (firstDay.getDay()+6)%7;
 const lastDay = new Date(year, month+1,0).getDate();
 
-const grid = document.createElement("div");
-grid.className = "calendar-grid";
-
-["Pon","Wt","Śr","Czw","Pt","Sob","Nd"].forEach(d => {
-
-const div = document.createElement("div");
-div.className = "calendar-weekday";
-div.textContent = d;
-grid.appendChild(div);
-
-});
-
-for(let i=0;i<startDay;i++){
-
-grid.appendChild(document.createElement("div"));
-
-}
-
-for(let day=1;day<=lastDay;day++){
-
-const date = new Date(year,month,day);
-const dateStr = formatLocal(date);
-
-const div = document.createElement("div");
-div.className="calendar-day";
-div.textContent=day;
-
-if(dateStr===selectedDay){
-
-div.classList.add("active-day");
-
-}
-
-const hasHours = db.entries.some(e=>e.date===dateStr);
-
-if(hasHours){
-
-div.classList.add("has-hours");
-
-}
-
-div.onclick=()=>{
-
-selectedDay = dateStr;
-renderCalendar();
-
-};
-
-grid.appendChild(div);
-
-}
-
-container.appendChild(grid);
-
-}
+const grid = document.createElement
