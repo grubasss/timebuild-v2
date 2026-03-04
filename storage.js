@@ -67,10 +67,7 @@ function initDB(initialData){
 function exportData(){
 
     const blob = new Blob(
-        [JSON.stringify({
-            version: STORAGE_VERSION,
-            data: db
-        }, null, 2)],
+        [JSON.stringify(db, null, 2)],
         { type: "application/json" }
     );
 
@@ -96,35 +93,42 @@ function importData(event){
 
             const parsed = JSON.parse(e.target.result);
 
-            /* obsługa starego i nowego backupu */
+            /* backup z telefonu */
 
-            if(parsed.data){
-                db = parsed.data;
-            }else{
+            if(parsed.workers){
+
                 db = parsed;
+
             }
 
-            /* czyścimy starą bazę */
+            /* backup z wersją */
+
+            else if(parsed.data){
+
+                db = parsed.data;
+
+            }
+
+            else{
+
+                alert("Niepoprawny format backupu");
+                return;
+
+            }
 
             localStorage.removeItem(STORAGE_KEY);
 
-            /* zapisujemy nową */
-
-            localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify({
-                    version: STORAGE_VERSION,
-                    data: db
-                })
-            );
+            saveDB();
 
             alert("Backup wczytany poprawnie!");
 
             location.reload();
 
-        }catch(err){
+        }
 
-            alert("Błąd pliku backupu.");
+        catch(err){
+
+            alert("Błąd pliku backupu");
 
         }
 
