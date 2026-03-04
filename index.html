@@ -8,7 +8,7 @@
 
 <title>House Concept ERP COMPLETE+</title>
 
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 
 <meta name="theme-color" content="#5fa68a">
 
@@ -28,9 +28,9 @@
 
 <main class="wrap">
 
-<!-- STATYSTYKI -->
-
 <section id="stats" class="card">
+
+<h2>📊 Statystyki</h2>
 
 <div class="row">
 <b>Pracownicy</b>
@@ -38,23 +38,21 @@
 </div>
 
 <div class="row">
-<b>Godziny</b>
+<b>Godziny razem</b>
 <span id="dashHours">0</span>
 </div>
 
 <div class="row">
 <b>Zaliczki</b>
-<span id="dashAdvances">0</span>
+<span id="dashAdvances">0 zł</span>
 </div>
 
 <div class="row">
 <b>Do wypłaty</b>
-<span id="dashToPay">0</span>
+<span id="dashToPay">0 zł</span>
 </div>
 
 </section>
-
-<!-- KALENDARZ -->
 
 <section class="card">
 
@@ -76,8 +74,6 @@
 
 </section>
 
-<!-- PRACOWNICY -->
-
 <section class="card">
 
 <h2>👷 Pracownicy</h2>
@@ -92,7 +88,17 @@
 
 </section>
 
-<!-- PROJEKTY -->
+<section class="card">
+
+<h2>👷 Panel pracownika</h2>
+
+<div id="workerPanel">
+
+Kliknij pracownika z listy powyżej aby zobaczyć jego statystyki.
+
+</div>
+
+</section>
 
 <section class="card">
 
@@ -105,8 +111,6 @@
 <div id="projectsList"></div>
 
 </section>
-
-<!-- GODZINY -->
 
 <section class="card">
 
@@ -122,13 +126,15 @@
 
 <button onclick="addHours()">Dodaj godziny</button>
 
-<select id="entriesFilter" onchange="renderEntries()"></select>
+<h3>Filtr pracownika</h3>
+
+<select id="entriesFilter" onchange="renderEntries()">
+<option value="all">Wszyscy</option>
+</select>
 
 <div id="entriesList"></div>
 
 </section>
-
-<!-- ZALICZKI -->
 
 <section class="card">
 
@@ -146,8 +152,6 @@
 
 </section>
 
-<!-- WYPŁATY -->
-
 <section class="card">
 
 <h2>💰 Wypłaty – całość</h2>
@@ -156,23 +160,13 @@
 
 </section>
 
-<!-- RAPORT TYGODNIA -->
-
 <section class="card">
-
 <div id="weeklyReport"></div>
-
 </section>
-
-<!-- RAPORT FIRMY -->
 
 <section class="card">
-
 <div id="companyReport"></div>
-
 </section>
-
-<!-- RANKING -->
 
 <section class="card">
 
@@ -181,8 +175,6 @@
 <div id="workersRanking"></div>
 
 </section>
-
-<!-- WYKRESY -->
 
 <section class="card">
 
@@ -193,8 +185,6 @@
 <canvas id="moneyChart"></canvas>
 
 </section>
-
-<!-- BACKUP -->
 
 <section class="card">
 
@@ -209,8 +199,6 @@
 </section>
 
 </main>
-
-<!-- SYSTEM -->
 
 <script>
 
@@ -231,16 +219,12 @@ return formatLocal(new Date());
 
 </script>
 
-<!-- SKRYPTY -->
-
-<script src="storage.js?v=5"></script>
-<script src="data-init.js?v=5"></script>
-<script src="app.js?v=5"></script>
-<script src="charts.js?v=5"></script>
-<script src="reports-fixed.js?v=5"></script>
-<script src="backup.js?v=5"></script>
-
-<!-- KALENDARZ -->
+<script src="storage.js?v=6"></script>
+<script src="data-init.js?v=6"></script>
+<script src="app.js?v=6"></script>
+<script src="charts.js?v=6"></script>
+<script src="reports-fixed.js?v=6"></script>
+<script src="backup.js?v=6"></script>
 
 <script>
 
@@ -256,10 +240,13 @@ calendarDate.setMonth(calendarDate.getMonth() + 1);
 renderCalendar();
 });
 
+setTimeout(()=>{
+if(typeof renderCharts === "function") renderCharts();
+},500);
+
 });
 
 </script>
 
 </body>
-
 </html>
