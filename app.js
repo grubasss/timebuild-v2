@@ -215,10 +215,14 @@ advWorker.innerHTML = db.workers.map(w =>
 }
 
 if(filter){
-filter.innerHTML = `<option value="all">Wszyscy</option>` +
+
+filter.innerHTML =
+`<option value="none">Brak filtra</option>` +
+
 db.workers.map(w =>
 `<option value="${w.id}">${w.name}</option>`
 ).join("");
+
 }
 
 }
@@ -253,7 +257,7 @@ const filter = document.getElementById("entriesFilter")?.value;
 
 let entries = db.entries;
 
-if(filter && filter!="all"){
+if(filter && filter!="none"){
 entries = entries.filter(e=>e.worker==filter);
 }
 
