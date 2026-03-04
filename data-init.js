@@ -57,4 +57,6 @@ const initialData = {
   notes: ""
 };
 
-initDB(initialData);
+if(!loadDB()){
+    initDB(initialData);
+}
