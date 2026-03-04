@@ -4,12 +4,15 @@
 --card:#ffffff;
 --soft:#eaf5f1;
 --weekend:#fde2e2;
+--text:#1f2937;
+--muted:#6b7280;
 }
 
 body{
 margin:0;
-font-family:system-ui;
+font-family:system-ui,-apple-system,Segoe UI,Roboto;
 background:var(--bg);
+color:var(--text);
 }
 
 /* ===== HEADER ===== */
@@ -36,37 +39,86 @@ border-radius:12px;
 max-width:1200px;
 margin:auto;
 padding:14px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:14px;
 }
 
 .card{
 background:var(--card);
-border-radius:18px;
+border-radius:16px;
+padding:16px;
+box-shadow:0 6px 16px rgba(0,0,0,.06);
+}
+
+/* ===== DASHBOARD ===== */
+
+.dashboard{
+grid-column:1 / -1;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+}
+
+.dashBox{
+background:var(--soft);
+border-radius:14px;
 padding:14px;
-margin:14px 0;
-box-shadow:0 6px 16px rgba(0,0,0,.08);
+text-align:center;
+}
+
+.dashTitle{
+font-size:13px;
+color:var(--muted);
+}
+
+.dashValue{
+font-size:22px;
+font-weight:700;
+margin-top:4px;
 }
 
 /* ===== INPUTS ===== */
 
-button,input,select{
+input,select{
 width:100%;
 padding:10px;
-border-radius:12px;
+border-radius:10px;
 border:1px solid #ccc;
-margin:6px 0;
-font-size:16px;
+margin:4px 0;
+font-size:15px;
 }
 
 button{
+padding:8px 12px;
+border-radius:10px;
+border:none;
 background:var(--main);
 color:white;
-border:none;
-font-weight:700;
+font-weight:600;
 cursor:pointer;
+font-size:14px;
 }
 
 button:hover{
 opacity:.9;
+}
+
+/* ===== FORM LINE ===== */
+
+.formLine{
+display:flex;
+gap:8px;
+flex-wrap:wrap;
+}
+
+.formLine input,
+.formLine select{
+flex:1;
+}
+
+.formLine button{
+width:auto;
 }
 
 /* ===== KALENDARZ ===== */
@@ -75,7 +127,7 @@ opacity:.9;
 display:flex;
 justify-content:space-between;
 align-items:center;
-margin-top:10px;
+margin-bottom:6px;
 }
 
 #monthLabel{
@@ -88,18 +140,15 @@ font-size:18px;
 .calendar-days{
 display:grid;
 grid-template-columns:repeat(7,1fr);
-gap:6px;
-margin-top:10px;
+gap:4px;
 text-align:center;
-font-weight:600;
-opacity:.7;
+font-size:12px;
+color:var(--muted);
+margin-bottom:4px;
 }
 
 .day-name{
-text-align:center;
-font-weight:700;
-padding:6px 0;
-color:#666;
+padding:4px 0;
 }
 
 /* ===== SIATKA KALENDARZA ===== */
@@ -107,42 +156,43 @@ color:#666;
 #calendar{
 display:grid;
 grid-template-columns:repeat(7,1fr);
-gap:6px;
-margin-top:10px;
+gap:4px;
 }
 
-/* pojedynczy dzień */
+/* dzień */
 
-.calendar-day{
+.day{
 background:var(--soft);
-padding:10px;
-border-radius:14px;
+border-radius:10px;
+padding:6px;
+font-size:13px;
 text-align:center;
-font-weight:600;
 cursor:pointer;
-transition:.15s;
-min-height:48px;
-display:flex;
-align-items:center;
-justify-content:center;
 }
 
-.calendar-day:hover{
-transform:scale(1.05);
+.day:hover{
+transform:scale(1.04);
 }
 
-.calendar-day.weekend{
-background:var(--weekend);
-}
-
-.calendar-day.active-day{
+.day.active{
 background:var(--main);
 color:white;
-font-weight:700;
 }
 
-.calendar-day.has-hours{
-border:2px solid var(--main);
+.day.empty{
+background:transparent;
+cursor:default;
+}
+
+/* kropka godzin */
+
+.dot{
+width:5px;
+height:5px;
+border-radius:50%;
+background:var(--main);
+margin:auto;
+margin-top:3px;
 }
 
 /* ===== LISTY ===== */
@@ -151,29 +201,59 @@ border:2px solid var(--main);
 display:flex;
 justify-content:space-between;
 align-items:center;
-border-bottom:1px solid #eee;
 padding:8px 0;
-gap:10px;
+border-bottom:1px solid #eee;
+font-size:14px;
+}
+
+.row button{
+margin-left:6px;
+}
+
+/* ===== STATUS WYPŁATY ===== */
+
+.status-good{
+color:#16a34a;
+font-weight:600;
+}
+
+.status-warning{
+color:#f59e0b;
+font-weight:600;
+}
+
+.status-bad{
+color:#dc2626;
+font-weight:600;
 }
 
 /* ===== WYKRESY ===== */
 
 canvas{
 width:100%;
-max-height:240px;
+max-height:220px;
+margin-top:10px;
 }
 
 /* ===== MOBILE ===== */
 
-@media(max-width:720px){
+@media(max-width:900px){
+
+.wrap{
+grid-template-columns:1fr;
+}
+
+.dashboard{
+grid-template-columns:1fr 1fr;
+}
+
+.formLine{
+flex-direction:column;
+}
 
 .row{
 flex-direction:column;
 align-items:flex-start;
-}
-
-.calendar-header{
-flex-direction:column;
 gap:6px;
 }
 
