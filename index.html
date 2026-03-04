@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>House Concept ERP COMPLETE+</title>
 
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=4">
   <meta name="theme-color" content="#5fa68a">
 
   <!-- Chart.js -->
@@ -91,7 +91,12 @@
 
 <section class="card">
   <h2>💾 Backup</h2>
+
   <button onclick="exportData()">Pobierz backup</button>
+
+  <!-- NOWY PRZYCISK NAPRAWY -->
+  <button onclick="fixWorkerIDs()">Napraw bazę</button>
+
   <input type="file" onchange="importData(event)">
 </section>
 
@@ -113,38 +118,19 @@ function formatLocal(d){
 function getTodayLocal(){
     return formatLocal(new Date());
 }
-
-function getWeekRangeSafe(dateStr){
-    const date = new Date(dateStr + "T12:00:00");
-    const day = date.getDay();
-    const diff = (day === 0 ? -6 : 1) - day;
-
-    const monday = new Date(date);
-    monday.setDate(date.getDate() + diff);
-
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-
-    return {
-        start: formatLocal(monday),
-        end: formatLocal(sunday)
-    };
-}
 </script>
 
-<!-- 🔑 KOLEJNOŚĆ MA KLUCZOWE ZNACZENIE -->
+<!-- SKRYPTY -->
+<script src="storage.js?v=4"></script>
+<script src="data-init.js?v=4"></script>
+<script src="app.js?v=6"></script>
+<script src="charts.js?v=4"></script>
+<script src="reports-fixed.js?v=4"></script>
 
-<script src="storage.js?v=10"></script>
-<script src="data-init.js?v=5"></script>
-<script src="data.js?v=14"></script>
-<script src="app.js?v=12"></script>
-<script src="charts.js?v=5"></script>
-<script src="reports-fixed.js?v=5"></script>
+<!-- BACKUP SYSTEM -->
+<script src="backup.js"></script>
 
-<!-- 🔥 BACKUP NA KOŃCU -->
-<script src="backup.js?v=1"></script>
-
-<!-- KALENDARZ -->
+<!-- KALENDARZ EVENTY -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -163,25 +149,9 @@ document.addEventListener("DOMContentLoaded", () => {
             renderCharts();
         }
     }, 800);
+
 });
 </script>
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyB2-KFDIH4CieEj42RZjugm43s3gZUbHJQ",
-    authDomain: "house-concept-erp.firebaseapp.com",
-    projectId: "house-concept-erp",
-    storageBucket: "house-concept-erp.firebasestorage.app",
-    messagingSenderId: "216763502411",
-    appId: "1:216763502411:web:2cacf80fdb0a37701462ce",
-    measurementId: "G-R4B03MEZDC"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const cloudDB = firebase.firestore();
-</script>
 </body>
 </html>
