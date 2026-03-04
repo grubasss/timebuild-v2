@@ -19,62 +19,57 @@ renderCalendar();
 
 });
 
-/* ==================== RENDER ALL ==================== */
-
 function renderAll(){
-
-renderDashboard();
 renderWorkers();
 renderProjects();
 renderSelectors();
 renderEntries();
 renderAdvances();
 renderPayouts();
-renderRanking();
 renderCalendar();
-
+renderDashboard();
+renderRanking();
 }
-
-/* ==================== DASHBOARD ==================== */
 
 function renderDashboard(){
 
 const workers = db.workers.length;
 
-const hours = db.entries.reduce((s,e)=>s + Number(e.hours || 0),0);
+const hours = db.entries.reduce((s,e)=>s+Number(e.hours),0);
 
-const advances = db.advances.reduce((s,a)=>s + Number(a.amount || 0),0);
+const advances = db.advances.reduce((s,a)=>s+Number(a.amount),0);
 
 let earned = 0;
 
-db.entries.forEach(e=>{
-const w = db.workers.find(x=>x.id == e.worker);
-if(w) earned += e.hours * w.rate;
+db.workers.forEach(w=>{
+
+const h = db.entries
+.filter(e=>e.worker==w.id)
+.reduce((s,e)=>s+Number(e.hours),0);
+
+earned += h * w.rate;
+
 });
 
 const toPay = earned - advances;
 
-document.getElementById("dashWorkers").textContent = workers;
-document.getElementById("dashHours").textContent = hours.toFixed(1);
-document.getElementById("dashAdvances").textContent = advances.toFixed(2)+" zł";
-document.getElementById("dashToPay").textContent = toPay.toFixed(2)+" zł";
+document.getElementById("dashWorkers").innerText = workers;
+document.getElementById("dashHours").innerText = hours;
+document.getElementById("dashAdvances").innerText = advances.toFixed(2) + " zł";
+document.getElementById("dashToPay").innerText = toPay.toFixed(2) + " zł";
 
 }
-
-/* ==================== WORKERS ==================== */
 
 function renderWorkers(){
 
 const list = document.getElementById("workersList");
 if(!list) return;
 
-list.innerHTML = db.workers.map(w=>`
+list.innerHTML = db.workers.map(w => `
 <div class="row">
-<b>${w.name}</b> (${w.rate} zł/h)
-<div>
+<b onclick="showWorker('${w.id}')" style="cursor:pointer">${w.name}</b> (${w.rate} zł/h)
 <button onclick="editWorker('${w.id}')">Edytuj</button>
 <button onclick="deleteWorker('${w.id}')">Usuń</button>
-</div>
 </div>
 `).join("");
 
@@ -106,8 +101,8 @@ function editWorker(id){
 const worker = db.workers.find(w=>w.id==id);
 if(!worker) return;
 
-const name = prompt("Imię:",worker.name);
-const rate = prompt("Stawka:",worker.rate);
+const name = prompt("Imię:", worker.name);
+const rate = prompt("Stawka:", worker.rate);
 
 if(!name || !rate) return;
 
@@ -121,6 +116,14 @@ renderAll();
 
 function deleteWorker(id){
 
+const hasHours = db.entries.some(e=>e.worker==id);
+const hasAdv = db.advances.some(a=>a.worker==id);
+
+if(hasHours || hasAdv){
+alert("Nie można usunąć pracownika. Najpierw usuń jego godziny i zaliczki.");
+return;
+}
+
 if(!confirm("Usunąć pracownika?")) return;
 
 db.workers = db.workers.filter(w=>w.id!=id);
@@ -130,18 +133,39 @@ renderAll();
 
 }
 
-/* ==================== PROJECTS ==================== */
+function showWorker(id){
+
+const panel = document.getElementById("workerPanel");
+if(!panel) return;
+
+const worker = db.workers.find(w=>w.id==id);
+
+const entries = db.entries.filter(e=>e.worker==id);
+const advances = db.advances.filter(a=>a.worker==id);
+
+const hours = entries.reduce((s,e)=>s+Number(e.hours),0);
+const earned = hours * worker.rate;
+const advanceSum = advances.reduce((s,a)=>s+Number(a.amount),0);
+const toPay = earned - advanceSum;
+
+panel.innerHTML = `
+<h3>${worker.name}</h3>
+
+<div class="row"><b>Godziny</b><span>${hours}</span></div>
+<div class="row"><b>Zarobione</b><span>${earned.toFixed(2)} zł</span></div>
+<div class="row"><b>Zaliczki</b><span>${advanceSum.toFixed(2)} zł</span></div>
+<div class="row"><b>Do wypłaty</b><span>${toPay.toFixed(2)} zł</span></div>
+`;
+
+}
 
 function renderProjects(){
 
 const list = document.getElementById("projectsList");
 if(!list) return;
 
-list.innerHTML = db.projects.map(p=>`
-<div class="row">
-${p.name}
-<button onclick="deleteProject('${p.id}')">Usuń</button>
-</div>
+list.innerHTML = db.projects.map(p => `
+<div class="row">${p.name}</div>
 `).join("");
 
 }
@@ -165,19 +189,6 @@ renderAll();
 
 }
 
-function deleteProject(id){
-
-if(!confirm("Usunąć projekt?")) return;
-
-db.projects = db.projects.filter(p=>p.id!=id);
-
-saveDB();
-renderAll();
-
-}
-
-/* ==================== SELECTORS ==================== */
-
 function renderSelectors(){
 
 const workers = document.getElementById("hoursWorker");
@@ -186,29 +197,31 @@ const advWorker = document.getElementById("advanceWorker");
 const filter = document.getElementById("entriesFilter");
 
 if(workers){
-workers.innerHTML = db.workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join("");
+workers.innerHTML = db.workers.map(w =>
+`<option value="${w.id}">${w.name}</option>`
+).join("");
 }
 
 if(projects){
-projects.innerHTML = db.projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");
+projects.innerHTML = db.projects.map(p =>
+`<option value="${p.id}">${p.name}</option>`
+).join("");
 }
 
 if(advWorker){
-advWorker.innerHTML = db.workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join("");
+advWorker.innerHTML = db.workers.map(w =>
+`<option value="${w.id}">${w.name}</option>`
+).join("");
 }
 
 if(filter){
-
-filter.innerHTML =
-`<option value="none">Brak filtra</option>
-<option value="all">Wszyscy</option>` +
-db.workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join("");
-
+filter.innerHTML = `<option value="all">Wszyscy</option>` +
+db.workers.map(w =>
+`<option value="${w.id}">${w.name}</option>`
+).join("");
 }
 
 }
-
-/* ==================== HOURS ==================== */
 
 function addHours(){
 
@@ -238,19 +251,13 @@ if(!list) return;
 
 const filter = document.getElementById("entriesFilter")?.value;
 
-let entries = [];
+let entries = db.entries;
 
-if(filter === "all"){
-entries = db.entries;
+if(filter && filter!="all"){
+entries = entries.filter(e=>e.worker==filter);
 }
 
-else if(filter && filter !== "none"){
-entries = db.entries.filter(e=>e.worker == filter);
-}
-
-entries.sort((a,b)=>b.date.localeCompare(a.date));
-
-list.innerHTML = entries.map(e=>{
+list.innerHTML = entries.map(e => {
 
 const worker = db.workers.find(w=>w.id==e.worker)?.name || "?";
 const project = db.projects.find(p=>p.id==e.project)?.name || "?";
@@ -258,45 +265,12 @@ const project = db.projects.find(p=>p.id==e.project)?.name || "?";
 return `
 <div class="row">
 ${worker} – ${project} – ${e.hours}h (${e.date})
-<div>
-<button onclick="editEntry(${e.id})">Edytuj</button>
-<button onclick="deleteEntry(${e.id})">Usuń</button>
-</div>
 </div>
 `;
 
 }).join("");
 
 }
-
-function editEntry(id){
-
-const entry = db.entries.find(e=>e.id==id);
-if(!entry) return;
-
-const hours = prompt("Godziny:",entry.hours);
-
-if(!hours) return;
-
-entry.hours = parseFloat(hours);
-
-saveDB();
-renderAll();
-
-}
-
-function deleteEntry(id){
-
-if(!confirm("Usunąć wpis godzin?")) return;
-
-db.entries = db.entries.filter(e=>e.id!=id);
-
-saveDB();
-renderAll();
-
-}
-
-/* ==================== ADVANCES ==================== */
 
 function addAdvance(){
 
@@ -323,65 +297,52 @@ function renderAdvances(){
 const list = document.getElementById("advancesList");
 if(!list) return;
 
-list.innerHTML = db.advances.map(a=>{
+list.innerHTML = db.advances.map(a => {
 
 const worker = db.workers.find(w=>w.id==a.worker)?.name || "?";
 
 return `
 <div class="row">
 ${worker} – ${a.amount} zł (${a.date})
-<button onclick="deleteAdvance(${a.id})">Usuń</button>
 </div>
 `;
 
 }).join("");
 
 }
-
-function deleteAdvance(id){
-
-if(!confirm("Usunąć zaliczkę?")) return;
-
-db.advances = db.advances.filter(a=>a.id!=id);
-
-saveDB();
-renderAll();
-
-}
-
-/* ==================== PAYOUTS ==================== */
 
 function renderPayouts(){
 
 const el = document.getElementById("payouts");
 if(!el) return;
 
-el.innerHTML = db.workers.map(w=>{
+el.innerHTML = db.workers.map(w => {
 
 const hours = db.entries
 .filter(e=>e.worker==w.id)
-.reduce((s,e)=>s + Number(e.hours),0);
+.reduce((s,e)=>s+Number(e.hours),0);
 
 const earned = hours * w.rate;
 
 const advances = db.advances
 .filter(a=>a.worker==w.id)
-.reduce((s,a)=>s + Number(a.amount),0);
+.reduce((s,a)=>s+Number(a.amount),0);
 
 const toPay = earned - advances;
 
 return `
 <div class="row">
-<b>${w.name}</b>
-<span>${toPay.toFixed(2)} zł</span>
+<b>${w.name}</b><br>
+Godziny: ${hours}<br>
+Zarobione: ${earned.toFixed(2)} zł<br>
+Zaliczki: ${advances.toFixed(2)} zł<br>
+Do wypłaty: ${toPay.toFixed(2)} zł
 </div>
 `;
 
-}).join("");
+}).join("<hr>");
 
 }
-
-/* ==================== RANKING ==================== */
 
 function renderRanking(){
 
@@ -392,24 +353,23 @@ const ranking = db.workers.map(w=>{
 
 const hours = db.entries
 .filter(e=>e.worker==w.id)
-.reduce((s,e)=>s + Number(e.hours),0);
+.reduce((s,e)=>s+Number(e.hours),0);
 
-return {name:w.name,hours};
+return {
+name: w.name,
+hours
+};
 
-});
-
-ranking.sort((a,b)=>b.hours - a.hours);
+}).sort((a,b)=>b.hours-a.hours);
 
 el.innerHTML = ranking.map((r,i)=>`
 <div class="row">
-<b>${i+1}. ${r.name}</b>
-<span>${r.hours} h</span>
+${i+1}. ${r.name}
+<span>${r.hours}h</span>
 </div>
 `).join("");
 
 }
-
-/* ==================== CALENDAR ==================== */
 
 function renderCalendar(){
 
@@ -417,8 +377,6 @@ const container = document.getElementById("calendar");
 if(!container) return;
 
 container.innerHTML = "";
-
-const today = formatLocal(new Date());
 
 const year = calendarDate.getFullYear();
 const month = calendarDate.getMonth();
@@ -428,39 +386,39 @@ const months = [
 "Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"
 ];
 
-const label = document.getElementById("monthLabel");
-if(label) label.textContent = months[month]+" "+year;
+document.getElementById("monthLabel").innerText =
+months[month] + " " + year;
 
 const firstDay = new Date(year, month, 1);
 const startDay = (firstDay.getDay()+6)%7;
 const lastDay = new Date(year, month+1,0).getDate();
 
 for(let i=0;i<startDay;i++){
-const empty=document.createElement("div");
+
+const empty = document.createElement("div");
+empty.className="day empty";
 container.appendChild(empty);
+
 }
 
 for(let day=1;day<=lastDay;day++){
 
-const date=new Date(year,month,day);
-const dateStr=formatLocal(date);
+const date = new Date(year,month,day);
+const dateStr = formatLocal(date);
 
-const div=document.createElement("div");
-div.className="calendar-day";
-div.textContent=day;
+const div = document.createElement("div");
+div.className="day";
 
-if(dateStr===today){
-div.style.border="2px solid #22c55e";
-}
+div.innerHTML = `<div class="day-number">${day}</div>`;
 
 if(dateStr===selectedDay){
-div.classList.add("active-day");
+div.classList.add("active");
 }
 
-const hasHours=db.entries.some(e=>e.date===dateStr);
-
-if(hasHours){
-div.classList.add("has-hours");
+if(db.entries.some(e=>e.date===dateStr)){
+const dot=document.createElement("div");
+dot.className="dot";
+div.appendChild(dot);
 }
 
 div.onclick=()=>{
