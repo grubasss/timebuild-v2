@@ -22,7 +22,6 @@ renderCalendar();
 /* ===== MASTER RENDER ===== */
 
 function renderAll(){
-
 renderDashboard();
 renderWorkers();
 renderProjects();
@@ -31,7 +30,6 @@ renderEntries();
 renderAdvances();
 renderPayouts();
 renderCalendar();
-
 }
 
 /* ===== DASHBOARD ===== */
@@ -53,15 +51,10 @@ if(w) earned+=e.hours*w.rate;
 
 const toPay=earned-advances;
 
-const wEl=document.getElementById("dashWorkers");
-const hEl=document.getElementById("dashHours");
-const aEl=document.getElementById("dashAdvances");
-const pEl=document.getElementById("dashToPay");
-
-if(wEl) wEl.textContent=workers;
-if(hEl) hEl.textContent=hours.toFixed(1);
-if(aEl) aEl.textContent=advances.toFixed(2)+" zł";
-if(pEl) pEl.textContent=toPay.toFixed(2)+" zł";
+document.getElementById("dashWorkers").textContent=workers;
+document.getElementById("dashHours").textContent=hours.toFixed(1);
+document.getElementById("dashAdvances").textContent=advances.toFixed(2)+" zł";
+document.getElementById("dashToPay").textContent=toPay.toFixed(2)+" zł";
 
 }
 
@@ -102,36 +95,23 @@ rate
 
 saveDB();
 renderAll();
-
 }
 
 function editWorker(id){
 
 const worker=db.workers.find(w=>w.id==id);
-if(!worker) return;
 
 const name=prompt("Imię:",worker.name);
 const rate=prompt("Stawka:",worker.rate);
-
-if(!name||!rate) return;
 
 worker.name=name;
 worker.rate=parseFloat(rate);
 
 saveDB();
 renderAll();
-
 }
 
 function deleteWorker(id){
-
-const hasHours=db.entries.some(e=>e.worker==id);
-const hasAdv=db.advances.some(a=>a.worker==id);
-
-if(hasHours||hasAdv){
-alert("Usuń najpierw godziny i zaliczki pracownika");
-return;
-}
 
 if(!confirm("Usunąć pracownika?")) return;
 
@@ -139,33 +119,60 @@ db.workers=db.workers.filter(w=>w.id!=id);
 
 saveDB();
 renderAll();
-
 }
 
-/* ===== PROJEKTY ===== */
+/* ===== PROJEKTY + PANEL PROJEKTU ===== */
 
 function renderProjects(){
 
 const list=document.getElementById("projectsList");
 if(!list) return;
 
-list.innerHTML=db.projects.map(p=>`
-<div class="row">
-${p.name}
+list.innerHTML=db.projects.map(p=>{
+
+const entries=db.entries.filter(e=>e.project==p.id);
+
+const hours=entries.reduce((s,e)=>s+Number(e.hours),0);
+
+let cost=0;
+
+entries.forEach(e=>{
+const w=db.workers.find(x=>x.id==e.worker);
+if(w) cost+=e.hours*w.rate;
+});
+
+const workers=[...new Set(entries.map(e=>{
+return db.workers.find(w=>w.id==e.worker)?.name
+}))].join(", ");
+
+return`
+
+<div class="card">
+
+<b>${p.name}</b><br>
+
+Godziny: ${hours}<br>
+Koszt pracy: ${cost.toFixed(2)} zł<br>
+
+Pracownicy: ${workers||"-"}
+
+<div>
+
 <button onclick="deleteProject('${p.id}')">Usuń</button>
+
 </div>
-`).join("");
+
+</div>
+
+`;
+
+}).join("");
 
 }
 
 function addProject(){
 
 const name=document.getElementById("projectName").value;
-
-if(!name){
-alert("Podaj nazwę projektu");
-return;
-}
 
 db.projects.push({
 id:Date.now().toString(),
@@ -174,7 +181,6 @@ name
 
 saveDB();
 renderAll();
-
 }
 
 function deleteProject(id){
@@ -185,7 +191,6 @@ db.projects=db.projects.filter(p=>p.id!=id);
 
 saveDB();
 renderAll();
-
 }
 
 /* ===== SELECTORY ===== */
@@ -197,37 +202,16 @@ const projects=document.getElementById("hoursProject");
 const advWorker=document.getElementById("advanceWorker");
 const filter=document.getElementById("entriesFilter");
 
-if(workers){
-workers.innerHTML=db.workers.map(w=>
-`<option value="${w.id}">${w.name}</option>`
-).join("");
-}
+workers.innerHTML=db.workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join("");
 
-if(projects){
-projects.innerHTML=db.projects.map(p=>
-`<option value="${p.id}">${p.name}</option>`
-).join("");
-}
+projects.innerHTML=db.projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");
 
-if(advWorker){
-advWorker.innerHTML=db.workers.map(w=>
-`<option value="${w.id}">${w.name}</option>`
-).join("");
-}
-
-if(filter){
-
-const current=filter.value||"all";
+advWorker.innerHTML=db.workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join("");
 
 filter.innerHTML=
-`<option value="all">Wszyscy</option>`+
-db.workers.map(w=>
-`<option value="${w.id}">${w.name}</option>`
-).join("");
-
-filter.value=current;
-
-}
+`<option value="none">Brak filtra</option>
+<option value="all">Wszyscy</option>`+
+db.workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join("");
 
 }
 
@@ -239,8 +223,6 @@ const worker=document.getElementById("hoursWorker").value;
 const project=document.getElementById("hoursProject").value;
 const hours=parseFloat(document.getElementById("hoursValue").value);
 
-if(!hours) return;
-
 db.entries.push({
 id:Date.now(),
 worker,
@@ -251,7 +233,6 @@ date:selectedDay
 
 saveDB();
 renderAll();
-
 }
 
 function renderEntries(){
@@ -259,7 +240,13 @@ function renderEntries(){
 const list=document.getElementById("entriesList");
 if(!list) return;
 
-const filter=document.getElementById("entriesFilter")?.value||"all";
+const filter=document.getElementById("entriesFilter")?.value||"none";
+
+if(filter==="none"){
+list.innerHTML="<i>Wybierz pracownika aby zobaczyć godziny</i>";
+renderWorkerSummary("all");
+return;
+}
 
 let entries=[...db.entries];
 
@@ -276,7 +263,7 @@ const project=db.projects.find(p=>p.id==e.project)?.name||"?";
 
 return`
 <div class="row">
-<span>${worker} – ${project} – ${e.hours}h (${e.date})</span>
+${worker} – ${project} – ${e.hours}h (${e.date})
 <div>
 <button onclick="editEntry(${e.id})">✏️</button>
 <button onclick="deleteEntry(${e.id})">🗑</button>
@@ -297,13 +284,12 @@ function renderWorkerSummary(workerId){
 const box=document.getElementById("workerSummary");
 if(!box) return;
 
-if(workerId==="all"){
+if(workerId==="all"||workerId==="none"){
 box.innerHTML="";
 return;
 }
 
 const worker=db.workers.find(w=>w.id==workerId);
-if(!worker) return;
 
 const hours=db.entries
 .filter(e=>e.worker==workerId)
@@ -318,13 +304,19 @@ const advances=db.advances
 const toPay=earned-advances;
 
 box.innerHTML=`
+
 <div class="card">
+
 <b>${worker.name}</b><br>
+
 Godziny: ${hours}<br>
 Zarobione: ${earned.toFixed(2)} zł<br>
 Zaliczki: ${advances.toFixed(2)} zł<br>
+
 <b>Do wypłaty: ${toPay.toFixed(2)} zł</b>
+
 </div>
+
 `;
 
 }
@@ -334,14 +326,11 @@ Zaliczki: ${advances.toFixed(2)} zł<br>
 function editEntry(id){
 
 const entry=db.entries.find(e=>e.id==id);
-if(!entry) return;
 
 const worker=prompt("ID pracownika:",entry.worker);
 const project=prompt("ID projektu:",entry.project);
 const date=prompt("Data:",entry.date);
 const hours=prompt("Godziny:",entry.hours);
-
-if(!worker||!project||!date||!hours) return;
 
 entry.worker=worker;
 entry.project=project;
@@ -350,7 +339,6 @@ entry.hours=parseFloat(hours);
 
 saveDB();
 renderAll();
-
 }
 
 function deleteEntry(id){
@@ -361,7 +349,6 @@ db.entries=db.entries.filter(e=>e.id!=id);
 
 saveDB();
 renderAll();
-
 }
 
 /* ===== ZALICZKI ===== */
@@ -372,8 +359,6 @@ const worker=document.getElementById("advanceWorker").value;
 const amount=parseFloat(document.getElementById("advanceValue").value);
 const date=document.getElementById("advanceDate").value;
 
-if(!amount) return;
-
 db.advances.push({
 id:Date.now(),
 worker,
@@ -383,13 +368,11 @@ date
 
 saveDB();
 renderAll();
-
 }
 
 function renderAdvances(){
 
 const list=document.getElementById("advancesList");
-if(!list) return;
 
 list.innerHTML=db.advances.map(a=>{
 
@@ -397,7 +380,7 @@ const worker=db.workers.find(w=>w.id==a.worker)?.name||"?";
 
 return`
 <div class="row">
-<span>${worker} – ${a.amount} zł (${a.date})</span>
+${worker} – ${a.amount} zł (${a.date})
 <div>
 <button onclick="editAdvance(${a.id})">✏️</button>
 <button onclick="deleteAdvance(${a.id})">🗑</button>
@@ -406,27 +389,18 @@ return`
 `;
 
 }).join("");
-
 }
 
 function editAdvance(id){
 
 const adv=db.advances.find(a=>a.id==id);
-if(!adv) return;
 
-const worker=prompt("ID pracownika:",adv.worker);
-const date=prompt("Data:",adv.date);
 const amount=prompt("Kwota:",adv.amount);
 
-if(!worker||!date||!amount) return;
-
-adv.worker=worker;
-adv.date=date;
 adv.amount=parseFloat(amount);
 
 saveDB();
 renderAll();
-
 }
 
 function deleteAdvance(id){
@@ -437,7 +411,6 @@ db.advances=db.advances.filter(a=>a.id!=id);
 
 saveDB();
 renderAll();
-
 }
 
 /* ===== WYPŁATY ===== */
@@ -445,19 +418,14 @@ renderAll();
 function renderPayouts(){
 
 const el=document.getElementById("payouts");
-if(!el) return;
 
 el.innerHTML=db.workers.map(w=>{
 
-const hours=db.entries
-.filter(e=>e.worker==w.id)
-.reduce((s,e)=>s+Number(e.hours),0);
+const hours=db.entries.filter(e=>e.worker==w.id).reduce((s,e)=>s+Number(e.hours),0);
 
 const earned=hours*w.rate;
 
-const advances=db.advances
-.filter(a=>a.worker==w.id)
-.reduce((s,a)=>s+Number(a.amount),0);
+const advances=db.advances.filter(a=>a.worker==w.id).reduce((s,a)=>s+Number(a.amount),0);
 
 const toPay=earned-advances;
 
@@ -480,8 +448,6 @@ return`
 function renderCalendar(){
 
 const container=document.getElementById("calendar");
-if(!container) return;
-
 container.innerHTML="";
 
 const today=formatLocal(new Date());
@@ -489,42 +455,18 @@ const today=formatLocal(new Date());
 const year=calendarDate.getFullYear();
 const month=calendarDate.getMonth();
 
-const months=[
-"Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec",
-"Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"
-];
+const months=["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"];
 
-const label=document.getElementById("monthLabel");
-
-if(label){
-label.textContent=months[month]+" "+year;
-}
-
-const daysContainer=document.getElementById("calendarDays");
-
-if(daysContainer){
-
-daysContainer.innerHTML="";
-
-["Pon","Wt","Śr","Czw","Pt","Sob","Nd"].forEach(d=>{
-const div=document.createElement("div");
-div.className="day-name";
-div.textContent=d;
-daysContainer.appendChild(div);
-});
-
-}
+document.getElementById("monthLabel").textContent=months[month]+" "+year;
 
 const firstDay=new Date(year,month,1);
 const startDay=(firstDay.getDay()+6)%7;
 const lastDay=new Date(year,month+1,0).getDate();
 
 for(let i=0;i<startDay;i++){
-
 const empty=document.createElement("div");
 empty.className="day empty";
 container.appendChild(empty);
-
 }
 
 for(let day=1;day<=lastDay;day++){
