@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>House Concept ERP COMPLETE+</title>
-<link rel="stylesheet" href="style.css?v=5">
+
+<link rel="stylesheet" href="style.css?v=4">
 <meta name="theme-color" content="#5fa68a">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 
 <body>
@@ -34,15 +39,16 @@
 
 <div class="row">
 <b>Zaliczki</b>
-<span id="dashAdvances">0 zł</span>
+<span id="dashAdvances">0</span>
 </div>
 
 <div class="row">
 <b>Do wypłaty</b>
-<span id="dashToPay">0 zł</span>
+<span id="dashToPay">0</span>
 </div>
 
 </section>
+
 
 <section class="card">
 
@@ -59,6 +65,7 @@
 
 </section>
 
+
 <section class="card">
 
 <h2>👷 Pracownicy</h2>
@@ -72,18 +79,19 @@
 
 </section>
 
+
 <section class="card">
 
 <h2>📁 Projekty</h2>
 
 <input id="projectName" placeholder="Projekt">
+
 <button onclick="addProject()">Dodaj projekt</button>
 
 <div id="projectsList"></div>
 
-<div id="projectPanel" style="margin-top:20px"></div>
-
 </section>
+
 
 <section class="card">
 
@@ -104,6 +112,7 @@
 
 </section>
 
+
 <section class="card">
 
 <h2>💵 Zaliczki</h2>
@@ -120,6 +129,7 @@
 
 </section>
 
+
 <section class="card">
 
 <h2>💰 Wypłaty – całość</h2>
@@ -128,13 +138,16 @@
 
 </section>
 
+
 <section class="card">
 <div id="weeklyReport"></div>
 </section>
 
+
 <section class="card">
 <div id="companyReport"></div>
 </section>
+
 
 <section class="card">
 
@@ -145,24 +158,21 @@
 
 </section>
 
+
 <section class="card">
 
 <h2>💾 Backup</h2>
 
-<button onclick="exportData()">📥 Pobierz backup</button>
+<button onclick="exportData()">Pobierz backup</button>
 
-<br><br>
+<button onclick="fixWorkerIDs()">Napraw bazę</button>
 
-<label style="display:block;background:#5fa38c;color:white;padding:12px;border-radius:12px;text-align:center;cursor:pointer">
-
-📤 Wgraj backup
-<input type="file" onchange="importData(event)" hidden>
-
-</label>
+<input type="file" onchange="importData(event)">
 
 </section>
 
 </main>
+
 
 <script>
 
@@ -171,10 +181,13 @@ return parseFloat(String(val).replace(',','.')) || 0;
 }
 
 function formatLocal(d){
+
 const y = d.getFullYear();
 const m = String(d.getMonth()+1).padStart(2,'0');
 const day = String(d.getDate()).padStart(2,'0');
+
 return `${y}-${m}-${day}`;
+
 }
 
 function getTodayLocal(){
@@ -183,11 +196,14 @@ return formatLocal(new Date());
 
 </script>
 
-<script src="storage.js?v=5"></script>
-<script src="data-init.js?v=5"></script>
-<script src="app.js?v=7"></script>
-<script src="charts.js?v=5"></script>
-<script src="reports-fixed.js?v=5"></script>
+
+<script src="storage.js?v=4"></script>
+<script src="data-init.js?v=4"></script>
+<script src="app.js?v=6"></script>
+<script src="charts.js?v=4"></script>
+<script src="reports-fixed.js?v=4"></script>
+<script src="backup.js?v=4"></script>
+
 
 <script>
 
