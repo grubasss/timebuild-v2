@@ -19,8 +19,12 @@ renderCalendar();
 
 });
 
+/* ===== MASTER RENDER ===== */
+
 function renderAll(){
 if(!db) return;
+
+renderDashboard();
 renderWorkers();
 renderProjects();
 renderSelectors();
@@ -28,6 +32,37 @@ renderEntries();
 renderAdvances();
 renderPayouts();
 renderCalendar();
+}
+
+/* ===== DASHBOARD ===== */
+
+function renderDashboard(){
+
+const workers = db.workers.length;
+
+const hours = db.entries.reduce((s,e)=>s+Number(e.hours||0),0);
+
+const advances = db.advances.reduce((s,a)=>s+Number(a.amount||0),0);
+
+let earned = 0;
+
+db.entries.forEach(e=>{
+const w = db.workers.find(x=>x.id==e.worker);
+if(w) earned += e.hours * w.rate;
+});
+
+const toPay = earned - advances;
+
+const wEl = document.getElementById("dashWorkers");
+const hEl = document.getElementById("dashHours");
+const aEl = document.getElementById("dashAdvances");
+const pEl = document.getElementById("dashToPay");
+
+if(wEl) wEl.textContent = workers;
+if(hEl) hEl.textContent = hours.toFixed(1);
+if(aEl) aEl.textContent = advances.toFixed(2)+" zł";
+if(pEl) pEl.textContent = toPay.toFixed(2)+" zł";
+
 }
 
 /* ===== PRACOWNICY ===== */
@@ -40,8 +75,10 @@ if(!list) return;
 list.innerHTML = db.workers.map(w => `
 <div class="row">
 <b>${w.name}</b> (${w.rate} zł/h)
+<div>
 <button onclick="editWorker('${w.id}')">Edytuj</button>
 <button onclick="deleteWorker('${w.id}')">Usuń</button>
+</div>
 </div>
 `).join("");
 
@@ -214,9 +251,11 @@ const project = db.projects.find(p=>p.id==e.project)?.name || "?";
 
 return `
 <div class="row">
-${worker} – ${project} – ${e.hours}h (${e.date})
+<span>${worker} – ${project} – ${e.hours}h (${e.date})</span>
+<div>
 <button onclick="editEntry(${e.id})">Edytuj</button>
 <button onclick="deleteEntry(${e.id})">Usuń</button>
+</div>
 </div>
 `;
 
@@ -290,9 +329,11 @@ const worker = db.workers.find(w=>w.id==a.worker)?.name || "?";
 
 return `
 <div class="row">
-${worker} – ${a.amount} zł (${a.date})
+<span>${worker} – ${a.amount} zł (${a.date})</span>
+<div>
 <button onclick="editAdvance(${a.id})">Edytuj</button>
 <button onclick="deleteAdvance(${a.id})">Usuń</button>
+</div>
 </div>
 `;
 
@@ -352,17 +393,22 @@ const advances = db.advances
 
 const toPay = earned - advances;
 
+let status = "status-good";
+
+if(toPay < 0) status="status-bad";
+else if(advances > earned*0.7) status="status-warning";
+
 return `
 <div class="row">
-<b>${w.name}</b><br>
-Godziny: ${hours}<br>
-Zarobione: ${earned.toFixed(2)} zł<br>
-Zaliczki: ${advances.toFixed(2)} zł<br>
-Do wypłaty: ${toPay.toFixed(2)} zł
+<b>${w.name}</b>
+<span>Godziny: ${hours}</span>
+<span>Zarobione: ${earned.toFixed(2)} zł</span>
+<span>Zaliczki: ${advances.toFixed(2)} zł</span>
+<span class="${status}">Do wypłaty: ${toPay.toFixed(2)} zł</span>
 </div>
 `;
 
-}).join("<hr>");
+}).join("");
 
 }
 
