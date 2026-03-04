@@ -5,7 +5,7 @@ let db = null;
 
 /* ===== LOAD ===== */
 
-function loadDB() {
+function loadDB(){
 
     const raw = localStorage.getItem(STORAGE_KEY);
 
@@ -96,20 +96,27 @@ function importData(event){
 
             const parsed = JSON.parse(e.target.result);
 
-            if(parsed.version !== STORAGE_VERSION){
-                alert("Niepoprawna wersja backupu.");
-                return;
+            /* obsługa starego i nowego backupu */
+
+            if(parsed.data){
+                db = parsed.data;
+            }else{
+                db = parsed;
             }
 
-            /* usuwamy starą bazę */
+            /* czyścimy starą bazę */
 
             localStorage.removeItem(STORAGE_KEY);
 
-            /* wczytujemy nową */
+            /* zapisujemy nową */
 
-            db = parsed.data;
-
-            saveDB();
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify({
+                    version: STORAGE_VERSION,
+                    data: db
+                })
+            );
 
             alert("Backup wczytany poprawnie!");
 
@@ -117,7 +124,7 @@ function importData(event){
 
         }catch(err){
 
-            alert("Błąd wczytywania backupu.");
+            alert("Błąd pliku backupu.");
 
         }
 
