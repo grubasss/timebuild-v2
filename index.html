@@ -7,6 +7,7 @@
 <title>House Concept ERP COMPLETE+</title>
 
 <link rel="stylesheet" href="style.css?v=5">
+
 <meta name="theme-color" content="#5fa68a">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -16,168 +17,171 @@
 <body>
 
 <header class="top">
+
 <img src="logo.png" class="logo" onerror="this.style.display='none'">
+
 <h1>House Concept ERP COMPLETE+</h1>
+
 </header>
 
 <main class="wrap">
 
-<!-- DASHBOARD -->
+<section id="stats" class="card">
 
-<section class="card dashboard">
+<div class="stats-grid">
 
-<div class="dashBox">
-<div class="dashTitle">Pracownicy</div>
-<div id="dashWorkers" class="dashValue">0</div>
+<div class="stat">
+<div>Pracownicy</div>
+<b id="dashWorkers">0</b>
 </div>
 
-<div class="dashBox">
-<div class="dashTitle">Godziny</div>
-<div id="dashHours" class="dashValue">0</div>
+<div class="stat">
+<div>Godziny</div>
+<b id="dashHours">0</b>
 </div>
 
-<div class="dashBox">
-<div class="dashTitle">Zaliczki</div>
-<div id="dashAdvances" class="dashValue">0 zł</div>
+<div class="stat">
+<div>Zaliczki</div>
+<b id="dashAdvances">0</b>
 </div>
 
-<div class="dashBox">
-<div class="dashTitle">Do wypłaty</div>
-<div id="dashToPay" class="dashValue">0 zł</div>
+<div class="stat">
+<div>Do wypłaty</div>
+<b id="dashToPay">0</b>
+</div>
+
 </div>
 
 </section>
-
-
-<!-- KALENDARZ -->
 
 <section class="card">
 
 <h2>📅 Kalendarz</h2>
 
 <div class="calendar-header">
+
 <button id="prevMonth">◀</button>
+
 <span id="monthLabel"></span>
+
 <button id="nextMonth">▶</button>
+
 </div>
 
 <div id="calendarDays" class="calendar-days"></div>
+
 <div id="calendar"></div>
 
 </section>
-
-
-<!-- PRACOWNICY -->
 
 <section class="card">
 
 <h2>👷 Pracownicy</h2>
 
-<div class="formLine">
 <input id="workerName" placeholder="Imię">
+
 <input id="workerRate" type="number" placeholder="Stawka zł/h">
-<button onclick="addWorker()">Dodaj</button>
-</div>
+
+<button onclick="addWorker()">Dodaj pracownika</button>
 
 <div id="workersList"></div>
 
 </section>
 
-
-<!-- PROJEKTY -->
-
 <section class="card">
 
 <h2>📁 Projekty</h2>
 
-<div class="formLine">
 <input id="projectName" placeholder="Projekt">
-<button onclick="addProject()">Dodaj</button>
-</div>
+
+<button onclick="addProject()">Dodaj projekt</button>
 
 <div id="projectsList"></div>
 
 </section>
 
-
-<!-- GODZINY -->
-
 <section class="card">
 
 <h2>⏱ Godziny</h2>
 
-<div class="formLine">
 <select id="hoursWorker"></select>
+
 <select id="hoursProject"></select>
+
 <input type="date" id="hoursDate">
-<input type="number" step="0.5" id="hoursValue" placeholder="Godziny">
-<button onclick="addHours()">Dodaj</button>
-</div>
+
+<input type="number" step="0.5" id="hoursValue" placeholder="Liczba godzin">
+
+<button onclick="addHours()">Dodaj godziny</button>
+
+<hr>
+
+<label>👷 Filtr pracownika</label>
+
+<select id="entriesFilter" onchange="renderEntries()">
+
+<option value="all">Wszyscy</option>
+
+</select>
+
+<div id="workerSummary"></div>
 
 <div id="entriesList"></div>
 
 </section>
 
-
-<!-- ZALICZKI -->
-
 <section class="card">
 
 <h2>💵 Zaliczki</h2>
 
-<div class="formLine">
 <select id="advanceWorker"></select>
+
 <input type="date" id="advanceDate">
+
 <input type="number" id="advanceValue" placeholder="Kwota">
-<button onclick="addAdvance()">Dodaj</button>
-</div>
+
+<button onclick="addAdvance()">Dodaj zaliczkę</button>
 
 <div id="advancesList"></div>
 
 </section>
 
-
-<!-- WYPŁATY -->
-
 <section class="card">
 
-<h2>💰 Wypłaty</h2>
+<h2>💰 Wypłaty – całość</h2>
 
 <div id="payouts"></div>
 
 </section>
 
-
-<!-- RAPORT -->
-
 <section class="card">
+
 <div id="weeklyReport"></div>
+
 </section>
 
 <section class="card">
+
 <div id="companyReport"></div>
+
 </section>
-
-
-<!-- WYKRESY -->
 
 <section class="card">
 
 <h2>📊 Wykresy</h2>
 
 <canvas id="hoursChart"></canvas>
+
 <canvas id="moneyChart"></canvas>
 
 </section>
-
-
-<!-- BACKUP -->
 
 <section class="card">
 
 <h2>💾 Backup</h2>
 
 <button onclick="exportData()">Pobierz backup</button>
+
 <button onclick="fixWorkerIDs()">Napraw bazę</button>
 
 <input type="file" onchange="importData(event)">
@@ -186,60 +190,70 @@
 
 </main>
 
-
-<!-- SYSTEM FIX -->
-
 <script>
 
 function safeNumber(val){
+
 return parseFloat(String(val).replace(',','.')) || 0;
+
 }
 
 function formatLocal(d){
+
 const y = d.getFullYear();
+
 const m = String(d.getMonth()+1).padStart(2,'0');
+
 const day = String(d.getDate()).padStart(2,'0');
+
 return `${y}-${m}-${day}`;
+
 }
 
 function getTodayLocal(){
+
 return formatLocal(new Date());
+
 }
 
 </script>
 
-
-<!-- SKRYPTY -->
-
-<script src="storage.js?v=4"></script>
-<script src="data-init.js?v=4"></script>
-<script src="app.js?v=6"></script>
-<script src="charts.js?v=4"></script>
-<script src="reports-fixed.js?v=4"></script>
+<script src="storage.js?v=5"></script>
+<script src="data-init.js?v=5"></script>
+<script src="app.js?v=7"></script>
+<script src="charts.js?v=5"></script>
+<script src="reports-fixed.js?v=5"></script>
 <script src="backup.js"></script>
-
-
-<!-- KALENDARZ -->
 
 <script>
 
 document.addEventListener("DOMContentLoaded", () => {
 
 document.getElementById("prevMonth")?.addEventListener("click", () => {
+
 calendarDate.setMonth(calendarDate.getMonth() - 1);
+
 renderCalendar();
+
 });
 
 document.getElementById("nextMonth")?.addEventListener("click", () => {
+
 calendarDate.setMonth(calendarDate.getMonth() + 1);
+
 renderCalendar();
+
 });
 
-setTimeout(() => {
-if (typeof renderCharts === "function") {
+setTimeout(()=>{
+
+if(typeof renderCharts==="function"){
+
 renderCharts();
+
 }
-}, 800);
+
+},800);
 
 });
 
