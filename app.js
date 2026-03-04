@@ -19,7 +19,10 @@ renderCalendar();
 
 });
 
+/* ==================== RENDER ALL ==================== */
+
 function renderAll(){
+
 renderDashboard();
 renderWorkers();
 renderProjects();
@@ -27,49 +30,45 @@ renderSelectors();
 renderEntries();
 renderAdvances();
 renderPayouts();
-renderCalendar();
 renderRanking();
+renderCalendar();
+
 }
 
-/* DASHBOARD */
+/* ==================== DASHBOARD ==================== */
 
 function renderDashboard(){
 
 const workers = db.workers.length;
 
-const hours = db.entries.reduce((s,e)=>s+Number(e.hours||0),0);
+const hours = db.entries.reduce((s,e)=>s + Number(e.hours || 0),0);
 
-const advances = db.advances.reduce((s,a)=>s+Number(a.amount||0),0);
+const advances = db.advances.reduce((s,a)=>s + Number(a.amount || 0),0);
 
 let earned = 0;
 
 db.entries.forEach(e=>{
-const w = db.workers.find(x=>x.id==e.worker);
+const w = db.workers.find(x=>x.id == e.worker);
 if(w) earned += e.hours * w.rate;
 });
 
 const toPay = earned - advances;
 
-const w = document.getElementById("dashWorkers");
-const h = document.getElementById("dashHours");
-const a = document.getElementById("dashAdvances");
-const p = document.getElementById("dashToPay");
-
-if(w) w.textContent = workers;
-if(h) h.textContent = hours.toFixed(1);
-if(a) a.textContent = advances.toFixed(2) + " zł";
-if(p) p.textContent = toPay.toFixed(2) + " zł";
+document.getElementById("dashWorkers").textContent = workers;
+document.getElementById("dashHours").textContent = hours.toFixed(1);
+document.getElementById("dashAdvances").textContent = advances.toFixed(2)+" zł";
+document.getElementById("dashToPay").textContent = toPay.toFixed(2)+" zł";
 
 }
 
-/* WORKERS */
+/* ==================== WORKERS ==================== */
 
 function renderWorkers(){
 
 const list = document.getElementById("workersList");
 if(!list) return;
 
-list.innerHTML = db.workers.map(w => `
+list.innerHTML = db.workers.map(w=>`
 <div class="row">
 <b>${w.name}</b> (${w.rate} zł/h)
 <div>
@@ -131,14 +130,14 @@ renderAll();
 
 }
 
-/* PROJECTS */
+/* ==================== PROJECTS ==================== */
 
 function renderProjects(){
 
 const list = document.getElementById("projectsList");
 if(!list) return;
 
-list.innerHTML = db.projects.map(p => `
+list.innerHTML = db.projects.map(p=>`
 <div class="row">
 ${p.name}
 <button onclick="deleteProject('${p.id}')">Usuń</button>
@@ -177,7 +176,7 @@ renderAll();
 
 }
 
-/* SELECTORS */
+/* ==================== SELECTORS ==================== */
 
 function renderSelectors(){
 
@@ -199,15 +198,17 @@ advWorker.innerHTML = db.workers.map(w=>`<option value="${w.id}">${w.name}</opti
 }
 
 if(filter){
+
 filter.innerHTML =
 `<option value="none">Brak filtra</option>
 <option value="all">Wszyscy</option>` +
 db.workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join("");
-}
 
 }
 
-/* HOURS */
+}
+
+/* ==================== HOURS ==================== */
 
 function addHours(){
 
@@ -237,15 +238,19 @@ if(!list) return;
 
 const filter = document.getElementById("entriesFilter")?.value;
 
-let entries = db.entries;
+let entries = [];
 
-if(filter && filter !== "none" && filter !== "all"){
-entries = entries.filter(e=>e.worker==filter);
+if(filter === "all"){
+entries = db.entries;
+}
+
+else if(filter && filter !== "none"){
+entries = db.entries.filter(e=>e.worker == filter);
 }
 
 entries.sort((a,b)=>b.date.localeCompare(a.date));
 
-list.innerHTML = entries.map(e => {
+list.innerHTML = entries.map(e=>{
 
 const worker = db.workers.find(w=>w.id==e.worker)?.name || "?";
 const project = db.projects.find(p=>p.id==e.project)?.name || "?";
@@ -291,7 +296,7 @@ renderAll();
 
 }
 
-/* ADVANCES */
+/* ==================== ADVANCES ==================== */
 
 function addAdvance(){
 
@@ -344,7 +349,7 @@ renderAll();
 
 }
 
-/* PAYOUTS */
+/* ==================== PAYOUTS ==================== */
 
 function renderPayouts(){
 
@@ -355,13 +360,13 @@ el.innerHTML = db.workers.map(w=>{
 
 const hours = db.entries
 .filter(e=>e.worker==w.id)
-.reduce((s,e)=>s+Number(e.hours),0);
+.reduce((s,e)=>s + Number(e.hours),0);
 
 const earned = hours * w.rate;
 
 const advances = db.advances
 .filter(a=>a.worker==w.id)
-.reduce((s,a)=>s+Number(a.amount),0);
+.reduce((s,a)=>s + Number(a.amount),0);
 
 const toPay = earned - advances;
 
@@ -376,7 +381,7 @@ return `
 
 }
 
-/* RANKING */
+/* ==================== RANKING ==================== */
 
 function renderRanking(){
 
@@ -387,13 +392,13 @@ const ranking = db.workers.map(w=>{
 
 const hours = db.entries
 .filter(e=>e.worker==w.id)
-.reduce((s,e)=>s+Number(e.hours),0);
+.reduce((s,e)=>s + Number(e.hours),0);
 
 return {name:w.name,hours};
 
 });
 
-ranking.sort((a,b)=>b.hours-a.hours);
+ranking.sort((a,b)=>b.hours - a.hours);
 
 el.innerHTML = ranking.map((r,i)=>`
 <div class="row">
@@ -404,7 +409,7 @@ el.innerHTML = ranking.map((r,i)=>`
 
 }
 
-/* CALENDAR */
+/* ==================== CALENDAR ==================== */
 
 function renderCalendar(){
 
@@ -418,26 +423,29 @@ const today = formatLocal(new Date());
 const year = calendarDate.getFullYear();
 const month = calendarDate.getMonth();
 
-const months = ["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"];
+const months = [
+"Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec",
+"Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"
+];
 
 const label = document.getElementById("monthLabel");
-if(label) label.textContent = months[month] + " " + year;
+if(label) label.textContent = months[month]+" "+year;
 
 const firstDay = new Date(year, month, 1);
 const startDay = (firstDay.getDay()+6)%7;
 const lastDay = new Date(year, month+1,0).getDate();
 
 for(let i=0;i<startDay;i++){
-const empty = document.createElement("div");
+const empty=document.createElement("div");
 container.appendChild(empty);
 }
 
 for(let day=1;day<=lastDay;day++){
 
-const date = new Date(year,month,day);
-const dateStr = formatLocal(date);
+const date=new Date(year,month,day);
+const dateStr=formatLocal(date);
 
-const div = document.createElement("div");
+const div=document.createElement("div");
 div.className="calendar-day";
 div.textContent=day;
 
