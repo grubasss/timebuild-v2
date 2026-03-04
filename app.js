@@ -34,21 +34,14 @@ renderRanking();
 function renderDashboard(){
 
 const workers = db.workers.length;
-
 const hours = db.entries.reduce((s,e)=>s+Number(e.hours),0);
-
 const advances = db.advances.reduce((s,a)=>s+Number(a.amount),0);
 
 let earned = 0;
 
 db.workers.forEach(w=>{
-
-const h = db.entries
-.filter(e=>e.worker==w.id)
-.reduce((s,e)=>s+Number(e.hours),0);
-
+const h = db.entries.filter(e=>e.worker==w.id).reduce((s,e)=>s+Number(e.hours),0);
 earned += h * w.rate;
-
 });
 
 const toPay = earned - advances;
@@ -217,7 +210,8 @@ advWorker.innerHTML = db.workers.map(w =>
 if(filter){
 
 filter.innerHTML =
-`<option value="none">Brak filtra</option>` +
+`<option value="none">Brak filtra</option>
+<option value="all">Wszyscy</option>` +
 
 db.workers.map(w =>
 `<option value="${w.id}">${w.name}</option>`
@@ -255,10 +249,18 @@ if(!list) return;
 
 const filter = document.getElementById("entriesFilter")?.value;
 
-let entries = db.entries;
+let entries = [];
 
-if(filter && filter!="none"){
-entries = entries.filter(e=>e.worker==filter);
+if(filter === "all"){
+entries = db.entries;
+}
+
+else if(filter === "none"){
+entries = [];
+}
+
+else if(filter){
+entries = db.entries.filter(e=>e.worker==filter);
 }
 
 list.innerHTML = entries.map(e => {
@@ -322,16 +324,9 @@ if(!el) return;
 
 el.innerHTML = db.workers.map(w => {
 
-const hours = db.entries
-.filter(e=>e.worker==w.id)
-.reduce((s,e)=>s+Number(e.hours),0);
-
+const hours = db.entries.filter(e=>e.worker==w.id).reduce((s,e)=>s+Number(e.hours),0);
 const earned = hours * w.rate;
-
-const advances = db.advances
-.filter(a=>a.worker==w.id)
-.reduce((s,a)=>s+Number(a.amount),0);
-
+const advances = db.advances.filter(a=>a.worker==w.id).reduce((s,a)=>s+Number(a.amount),0);
 const toPay = earned - advances;
 
 return `
@@ -355,14 +350,9 @@ if(!el) return;
 
 const ranking = db.workers.map(w=>{
 
-const hours = db.entries
-.filter(e=>e.worker==w.id)
-.reduce((s,e)=>s+Number(e.hours),0);
+const hours = db.entries.filter(e=>e.worker==w.id).reduce((s,e)=>s+Number(e.hours),0);
 
-return {
-name: w.name,
-hours
-};
+return {name: w.name,hours};
 
 }).sort((a,b)=>b.hours-a.hours);
 
