@@ -1,37 +1,21 @@
-let db = {
-workers: [],
-projects: [],
-entries: [],
-advances: [],
-materials: [],
-notes: ""
-};
-
 let calendarDate = new Date();
 let selectedDay = formatLocal(new Date());
 
 document.addEventListener("DOMContentLoaded", () => {
 
-loadDB();
 renderAll();
 
+document.getElementById("prevMonth")?.addEventListener("click", () => {
+calendarDate.setMonth(calendarDate.getMonth() - 1);
+renderCalendar();
 });
 
-function loadDB(){
+document.getElementById("nextMonth")?.addEventListener("click", () => {
+calendarDate.setMonth(calendarDate.getMonth() + 1);
+renderCalendar();
+});
 
-const raw = localStorage.getItem("erpDB");
-
-if(raw){
-db = JSON.parse(raw);
-}
-
-}
-
-function saveDB(){
-
-localStorage.setItem("erpDB", JSON.stringify(db));
-
-}
+});
 
 function renderAll(){
 
@@ -217,46 +201,28 @@ if(!container) return;
 
 container.innerHTML = "";
 
-const monthLabel = document.getElementById("monthLabel");
-
 const year = calendarDate.getFullYear();
 const month = calendarDate.getMonth();
 
-const monthNames = [
-"Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec",
-"Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"
-];
+const firstDay = new Date(year, month, 1);
+const startDay = (firstDay.getDay()+6)%7;
+const lastDay = new Date(year, month+1,0).getDate();
 
-if(monthLabel){
-monthLabel.textContent = monthNames[month] + " " + year;
-}
-
-const daysRow = document.createElement("div");
-daysRow.className = "calendar-week";
+const grid = document.createElement("div");
+grid.className = "calendar-grid";
 
 ["Pon","Wt","Śr","Czw","Pt","Sob","Nd"].forEach(d => {
 
 const div = document.createElement("div");
 div.className = "calendar-weekday";
 div.textContent = d;
-daysRow.appendChild(div);
+grid.appendChild(div);
 
 });
 
-container.appendChild(daysRow);
-
-const firstDay = new Date(year, month, 1);
-const startDay = (firstDay.getDay()+6)%7;
-
-const lastDay = new Date(year, month+1,0).getDate();
-
-const grid = document.createElement("div");
-grid.className = "calendar-grid";
-
 for(let i=0;i<startDay;i++){
 
-const empty = document.createElement("div");
-grid.appendChild(empty);
+grid.appendChild(document.createElement("div"));
 
 }
 
@@ -266,8 +232,8 @@ const date = new Date(year,month,day);
 const dateStr = formatLocal(date);
 
 const div = document.createElement("div");
-div.className = "calendar-day";
-div.textContent = day;
+div.className="calendar-day";
+div.textContent=day;
 
 if(dateStr===selectedDay){
 
