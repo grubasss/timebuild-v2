@@ -57,12 +57,4 @@ const initialData = {
   notes: ""
 };
 
-/* poprawna inicjalizacja */
-
-const existing = loadDB();
-
-if(existing){
-    db = existing;
-}else{
-    initDB(initialData);
-}
+initDB(initialData);

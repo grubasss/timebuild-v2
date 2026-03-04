@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
 
 <meta charset="UTF-8">
@@ -7,7 +8,8 @@
 
 <title>House Concept ERP COMPLETE+</title>
 
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=6">
+
 <meta name="theme-color" content="#5fa68a">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,8 +19,11 @@
 <body>
 
 <header class="top">
+
 <img src="logo.png" class="logo" onerror="this.style.display='none'">
+
 <h1>House Concept ERP COMPLETE+</h1>
+
 </header>
 
 <main class="wrap">
@@ -39,38 +44,42 @@
 
 <div class="row">
 <b>Zaliczki</b>
-<span id="dashAdvances">0</span>
+<span id="dashAdvances">0 zł</span>
 </div>
 
 <div class="row">
 <b>Do wypłaty</b>
-<span id="dashToPay">0</span>
+<span id="dashToPay">0 zł</span>
 </div>
 
 </section>
-
 
 <section class="card">
 
 <h2>📅 Kalendarz</h2>
 
 <div class="calendar-header">
+
 <button id="prevMonth">◀</button>
+
 <span id="monthLabel"></span>
+
 <button id="nextMonth">▶</button>
+
 </div>
 
 <div id="calendarDays" class="calendar-days"></div>
+
 <div id="calendar"></div>
 
 </section>
-
 
 <section class="card">
 
 <h2>👷 Pracownicy</h2>
 
 <input id="workerName" placeholder="Imię">
+
 <input id="workerRate" type="number" placeholder="Stawka zł/h">
 
 <button onclick="addWorker()">Dodaj pracownika</button>
@@ -79,6 +88,17 @@
 
 </section>
 
+<section class="card">
+
+<h2>👷 Panel pracownika</h2>
+
+<div id="workerPanel">
+
+Kliknij pracownika z listy powyżej aby zobaczyć jego statystyki.
+
+</div>
+
+</section>
 
 <section class="card">
 
@@ -92,12 +112,12 @@
 
 </section>
 
-
 <section class="card">
 
 <h2>⏱ Godziny</h2>
 
 <select id="hoursWorker"></select>
+
 <select id="hoursProject"></select>
 
 <input type="date" id="hoursDate">
@@ -106,12 +126,15 @@
 
 <button onclick="addHours()">Dodaj godziny</button>
 
-<select id="entriesFilter"></select>
+<h3>Filtr pracownika</h3>
+
+<select id="entriesFilter" onchange="renderEntries()">
+<option value="all">Wszyscy</option>
+</select>
 
 <div id="entriesList"></div>
 
 </section>
-
 
 <section class="card">
 
@@ -129,7 +152,6 @@
 
 </section>
 
-
 <section class="card">
 
 <h2>💰 Wypłaty – całość</h2>
@@ -138,26 +160,31 @@
 
 </section>
 
-
 <section class="card">
 <div id="weeklyReport"></div>
 </section>
-
 
 <section class="card">
 <div id="companyReport"></div>
 </section>
 
+<section class="card">
+
+<h2>🏆 Ranking pracowników</h2>
+
+<div id="workersRanking"></div>
+
+</section>
 
 <section class="card">
 
 <h2>📊 Wykresy</h2>
 
 <canvas id="hoursChart"></canvas>
+
 <canvas id="moneyChart"></canvas>
 
 </section>
-
 
 <section class="card">
 
@@ -173,7 +200,6 @@
 
 </main>
 
-
 <script>
 
 function safeNumber(val){
@@ -181,13 +207,10 @@ return parseFloat(String(val).replace(',','.')) || 0;
 }
 
 function formatLocal(d){
-
 const y = d.getFullYear();
 const m = String(d.getMonth()+1).padStart(2,'0');
 const day = String(d.getDate()).padStart(2,'0');
-
 return `${y}-${m}-${day}`;
-
 }
 
 function getTodayLocal(){
@@ -196,14 +219,12 @@ return formatLocal(new Date());
 
 </script>
 
-
-<script src="storage.js?v=4"></script>
-<script src="data-init.js?v=4"></script>
+<script src="storage.js?v=6"></script>
+<script src="data-init.js?v=6"></script>
 <script src="app.js?v=6"></script>
-<script src="charts.js?v=4"></script>
-<script src="reports-fixed.js?v=4"></script>
-<script src="backup.js?v=4"></script>
-
+<script src="charts.js?v=6"></script>
+<script src="reports-fixed.js?v=6"></script>
+<script src="backup.js?v=6"></script>
 
 <script>
 
@@ -219,13 +240,9 @@ calendarDate.setMonth(calendarDate.getMonth() + 1);
 renderCalendar();
 });
 
-setTimeout(() => {
-
-if (typeof renderCharts === "function") {
-renderCharts();
-}
-
-}, 800);
+setTimeout(()=>{
+if(typeof renderCharts === "function") renderCharts();
+},500);
 
 });
 
