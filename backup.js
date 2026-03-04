@@ -1,22 +1,23 @@
 // ======================================================
-// BACKUP SYSTEM (AUTO-DETECT DATABASE)
+// BACKUP SYSTEM + DATABASE FIX
 // ======================================================
 
-// ===== EXPORT =====
+
+// ===== EXPORT BACKUP =====
 
 function exportData(){
 
     let raw = null;
 
-    // 1️⃣ Nowy system
+    // nowy system
     raw = localStorage.getItem("erpDB");
 
-    // 2️⃣ Firebase system
+    // firebase system
     if(!raw){
         raw = localStorage.getItem("erp-db");
     }
 
-    // 3️⃣ Stary system (twoje dane z telefonu)
+    // stary system (twoje dane z telefonu)
     if(!raw){
         const old = localStorage.getItem("houseERP_v2");
 
@@ -33,7 +34,7 @@ function exportData(){
         return;
     }
 
-    const blob = new Blob([raw], { type: "application/json" });
+    const blob = new Blob([raw], { type:"application/json" });
 
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -43,7 +44,7 @@ function exportData(){
 
 
 
-// ===== IMPORT =====
+// ===== IMPORT BACKUP =====
 
 function importData(event){
 
@@ -63,11 +64,11 @@ function importData(event){
             localStorage.setItem("erp-db", JSON.stringify(imported));
 
             localStorage.setItem("houseERP_v2", JSON.stringify({
-                version: 2,
-                data: imported
+                version:2,
+                data:imported
             }));
 
-            alert("Backup wczytany!");
+            alert("Backup wczytany ✔");
             location.reload();
 
         }catch{
@@ -79,4 +80,64 @@ function importData(event){
     };
 
     reader.readAsText(file);
+}
+
+
+
+// ===== NAPRAWA BAZY =====
+
+function fixWorkerIDs(){
+
+let raw = localStorage.getItem("houseERP_v2");
+
+if(!raw){
+    alert("Nie znaleziono bazy");
+    return;
+}
+
+let parsed = JSON.parse(raw);
+let db = parsed.data || parsed;
+
+const map = {
+
+ "1772561610510":"w4", // Szczur
+ "1772561630691":"w5"  // Błażej
+
+};
+
+
+// workers
+
+db.workers = db.workers.map(w=>{
+    if(map[w.id]) w.id = map[w.id];
+    return w;
+});
+
+
+// entries
+
+db.entries = db.entries.map(e=>{
+    if(map[e.worker]) e.worker = map[e.worker];
+    return e;
+});
+
+
+// advances
+
+db.advances = db.advances.map(a=>{
+    if(map[a.worker]) a.worker = map[a.worker];
+    return a;
+});
+
+
+localStorage.setItem("houseERP_v2",JSON.stringify({
+ version:2,
+ data:db
+}));
+
+
+alert("Baza naprawiona ✔");
+
+location.reload();
+
 }
